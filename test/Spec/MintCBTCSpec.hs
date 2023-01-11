@@ -1,4 +1,4 @@
-module Spec.MintCBTCSpec (sampleTest) where
+module Spec.MintCBTCSpec (sampleTest, mockCtx) where
 
 import MintCBTC qualified
 import Plutarch.Test.Precompiled (
