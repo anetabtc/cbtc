@@ -105,8 +105,6 @@ common dependencies
     , liqwid-plutarch-extra
     , plutarch
     , plutarch-extra
-    , plutarch-quickcheck
-    , plutarch-unit
     , plutus-core
     , plutus-ledger-api
     , plutus-simple-model
@@ -114,13 +112,21 @@ common dependencies
     , ply-core
     , ply-plutarch
     , serialise
+    , text
+
+common test-dependencies
+  build-depends:
+    , base
+    , plutarch-quickcheck
+    , plutarch-unit
+    , plutus-ledger-api
+    , plutus-tx
     , tasty
     , tasty-hunit
-    , text
 
 library
   import:          lang, dependencies
-  exposed-modules: AlwaysSucceeds
+  exposed-modules: MintCBTC
   hs-source-dirs:  src
 
 executable aneta-cbtc
@@ -134,3 +140,11 @@ executable aneta-cbtc
   -- other-extensions:
   build-depends:  aneta-cbtc
   hs-source-dirs: app
+
+test-suite aneta-cbtc-test
+  import:         lang, test-dependencies
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  other-modules:  Spec.MintCBTCSpec
+  build-depends:  aneta-cbtc
