@@ -12,6 +12,11 @@ $ nix develop
 [nix develop:~/aneta-cbtc]$ cabal run
 ```
 
+## Running test
+```
+[nix develop:~/aneta-cbtc]$ cabal run aneta-cbtc-test
+```
+
 ## Running hoogle
 
 ```
