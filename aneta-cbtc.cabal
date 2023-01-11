@@ -117,8 +117,11 @@ common dependencies
 common test-dependencies
   build-depends:
     , base
+    , plutarch
+    , plutarch-extra
     , plutarch-quickcheck
     , plutarch-unit
+    , plutus-core
     , plutus-ledger-api
     , plutus-tx
     , tasty
@@ -126,7 +129,10 @@ common test-dependencies
 
 library
   import:          lang, dependencies
-  exposed-modules: MintCBTC
+  exposed-modules:
+    MintCBTC
+    Utils
+
   hs-source-dirs:  src
 
 executable aneta-cbtc
