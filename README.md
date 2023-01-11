@@ -30,3 +30,12 @@ $ nix develop
 ```
 [nix develop:~/aneta-cbtc]$ ,format check
 ```
+
+## Using HLS
+
+- Install [Nix Environment Selector](https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector)
+
+- Open Command Palette (Ctrl + Shift + P) and run Nix-Env: Select Environment command.
+
+- Select `shell.nix`
+- Wait and Restart VSCode
