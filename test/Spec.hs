@@ -1,4 +1,4 @@
-module Main (main) where
+module Main (main, mainEval) where
 
 import Test.Tasty (
   defaultMain,
@@ -6,10 +6,17 @@ import Test.Tasty (
  )
 
 import Spec.MintCBTCSpec qualified as MintCBTCSpec
+import Utils (evalT)
 
 main :: IO ()
 main = do
   defaultMain $
     testGroup
-      "Test Minting Policy"
+      "Unit Test"
       [MintCBTCSpec.sampleTest]
+
+mainEval :: IO ()
+mainEval = do
+  case evalT MintCBTCSpec.sampleTestEval of
+    Left _ -> putStrLn "Error"
+    Right r -> putStrLn (show r)
