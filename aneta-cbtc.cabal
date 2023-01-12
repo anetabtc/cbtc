@@ -118,6 +118,7 @@ common test-dependencies
   build-depends:
     , base
     , plutarch
+    , plutarch-context-builder
     , plutarch-extra
     , plutarch-quickcheck
     , plutarch-unit
@@ -126,10 +127,12 @@ common test-dependencies
     , plutus-tx
     , tasty
     , tasty-hunit
+    , text
 
 library
   import:          lang, dependencies
   exposed-modules:
+    GuardianValidator
     MintCBTC
     Utils
 
