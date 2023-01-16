@@ -1,6 +1,7 @@
 module Utils (
   evalT,
   phasOneCurrecySymbolOneTokenName,
+  phasScriptHash,
 ) where
 
 import Data.Bifunctor (
@@ -15,7 +16,8 @@ import Plutarch (
   TracingMode (DoTracing),
   compile,
  )
-import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PMap (PMap), PValue (PValue))
+import Plutarch.Api.V1.Address (PCredential (PPubKeyCredential, PScriptCredential))
+import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PMap (PMap), PScriptHash, PTxInInfo, PValue (PValue))
 import Plutarch.Evaluate (
   evalScript,
  )
@@ -23,7 +25,7 @@ import "liqwid-plutarch-extra" Plutarch.Extra.List (pisSingleton)
 import "liqwid-plutarch-extra" Plutarch.Extra.Script (
   applyArguments,
  )
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pmatchC)
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pmatchC)
 import Plutarch.Prelude
 import Plutarch.Script (
   Script,
@@ -62,3 +64,14 @@ phasOneCurrecySymbolOneTokenName = plam $ \value' ->
     PMap listTokenAndAmnt <- pmatchC $ pfromData $ psndBuiltin #$ phead # listCS
     pure $
       (pisSingleton # listCS) #&& (pisSingleton # listTokenAndAmnt)
+
+phasScriptHash :: Term s (PScriptHash :--> PTxInInfo :--> PBool)
+phasScriptHash = plam $ \scriptHash info -> unTermCont $ do
+  credential <- pletC $ pfield @"credential" #$ pfield @"address" #$ pfield @"resolved" # info
+  pure $
+    pmatch credential $ \case
+      PScriptCredential sh' -> unTermCont $ do
+        sh <- pletC $ pfield @"_0" # sh'
+        pure (sh #== scriptHash)
+      PPubKeyCredential _ ->
+        pcon PFalse
