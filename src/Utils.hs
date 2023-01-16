@@ -43,6 +43,12 @@ evalWithArgsT x args = do
   scr <- first (pack . show) escr
   pure (scr, budg, trc)
 
+{- Note:
+plength $ pto $ pto $ pto txInfo.mint == 1
+only checks length of CurrencySymbol, and not TokenName length
+mockCtx3 fails
+-}
+
 {- | Returns 'PTrue' if the argument 'PValue' has one 'PCurrencySymbol'
   and one 'PTokenName', if PValue is not /normalized/ ('PValue' ''Sorted' ''NonZero') it will return 'PFalse'
 -}
@@ -55,8 +61,4 @@ phasOneCurrecySymbolOneTokenName = plam $ \value' ->
     PMap listCS <- pmatchC mapValue
     PMap listTokenAndAmnt <- pmatchC $ pfromData $ psndBuiltin #$ phead # listCS
     pure $
-      ( pisSingleton
-          # listCS
-          #&& pisSingleton
-          # listTokenAndAmnt
-      )
+      (pisSingleton # listCS) #&& (pisSingleton # listTokenAndAmnt)

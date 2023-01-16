@@ -117,6 +117,10 @@ common dependencies
 common test-dependencies
   build-depends:
     , base
+    , bytestring
+    , hedgehog
+    , hedgehog-quickcheck
+    , liqwid-plutarch-extra
     , plutarch
     , plutarch-context-builder
     , plutarch-extra
@@ -126,8 +130,10 @@ common test-dependencies
     , plutus-ledger-api
     , plutus-tx
     , tasty
+    , tasty-hedgehog
     , tasty-hunit
     , text
+    , uuid
 
 library
   import:          lang, dependencies
