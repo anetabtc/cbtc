@@ -1,21 +1,22 @@
 {-# LANGUAGE TemplateHaskell #-}
+
 module GuardianValidator (validator) where
 
-import Plutarch.Api.V2 (PValidator, PAddress, PPubKeyHash)
-import Plutarch.Prelude
-import PlutusTx qualified
+import Plutarch.Api.V2 (PAddress, PPubKeyHash, PValidator)
 import Plutarch.DataRepr (
   DerivePConstantViaData (DerivePConstantViaData),
   PDataFields,
  )
+import Plutarch.Prelude
+import PlutusTx qualified
 
+import Plutarch.Extra.ScriptContext (ptxSignedBy)
+import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, ptraceC)
 import Plutarch.Lift (
   PConstantDecl,
   PUnsafeLiftDecl (PLifted),
  )
 import PlutusLedgerApi.V2 (Address)
-import Plutarch.Extra.ScriptContext (ptxSignedBy)
-import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (ptraceC, pletFieldsC, pletC)
 
 data GuardianDatum = GuardianDatum
   { deposit :: Integer

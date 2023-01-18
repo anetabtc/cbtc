@@ -5,8 +5,8 @@ import Test.Tasty (
   testGroup,
  )
 
-import Spec.MintCBTCSpec qualified as MintCBTCSpec
 import Spec.GuardianValidatorSpec qualified as GuardianValidatorSpec
+import Spec.MintCBTCSpec qualified as MintCBTCSpec
 import Utils (evalT)
 
 main :: IO ()

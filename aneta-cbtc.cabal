@@ -162,6 +162,7 @@ test-suite aneta-cbtc-test
   main-is:        Spec.hs
   hs-source-dirs: test
   other-modules:
-    Spec.MintCBTCSpec,
     Spec.GuardianValidatorSpec
+    Spec.MintCBTCSpec
+
   build-depends:  aneta-cbtc

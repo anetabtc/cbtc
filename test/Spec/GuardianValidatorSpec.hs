@@ -1,13 +1,15 @@
 module Spec.GuardianValidatorSpec (
- sampleTest,
- samplePubKeyHash1,
- goodCtx1,
- pubKeyHashList,
- sampleTestEval
- ) where
+  sampleTest,
+  samplePubKeyHash1,
+  goodCtx1,
+  pubKeyHashList,
+  sampleTestEval,
+) where
 
 import "plutarch-context-builder" Plutarch.Context (
   Builder,
+  SpendingBuilder,
+  buildSpending,
   checkPhase1,
   input,
   mint,
@@ -19,9 +21,15 @@ import "plutarch-context-builder" Plutarch.Context (
   withRedeemer,
   withRefIndex,
   withRefTxId,
-  withValue, SpendingBuilder, buildSpending, withSpendingOutRefIdx,
+  withSpendingOutRefIdx,
+  withValue,
  )
 import Plutarch.Prelude
+import Plutarch.Test.Precompiled (
+  Expectation (..),
+  testEvalCase,
+  tryFromPTerm,
+ )
 import PlutusLedgerApi.V2 (
   CurrencySymbol (..),
   PubKeyHash,
@@ -32,17 +40,11 @@ import PlutusLedgerApi.V2 (
   adaToken,
   singleton,
  )
-import Plutarch.Test.Precompiled (
-  Expectation (..),
-  testEvalCase,
-  tryFromPTerm,
- )
 
+import GuardianValidator qualified
+import Plutarch.Api.V2 (PPubKeyHash)
 import PlutusTx qualified
 import Test.Tasty (TestTree)
-import qualified GuardianValidator
-import Plutarch.Api.V2 (PPubKeyHash)
-
 
 sampleScriptHash :: ScriptHash
 sampleScriptHash = "395e0b6c308dbdfd6e41354b68f833b96990ecd93721699ed90a2113"
@@ -73,7 +75,6 @@ inputPubKey =
       , withRefTxId "24625f40313747ed839c2e20de5c1e2040c01411e6f528ee4b4abae5115c6608"
       , withRefIndex 2
       ]
-
 
 commonPurpose :: SpendingBuilder
 commonPurpose = withSpendingOutRefIdx 1
