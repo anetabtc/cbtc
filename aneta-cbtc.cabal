@@ -161,5 +161,7 @@ test-suite aneta-cbtc-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test
-  other-modules:  Spec.MintCBTCSpec
+  other-modules:
+    Spec.MintCBTCSpec,
+    Spec.GuardianValidatorSpec
   build-depends:  aneta-cbtc

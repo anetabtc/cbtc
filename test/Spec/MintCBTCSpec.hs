@@ -81,8 +81,8 @@ inputPubKey =
       , withRefIndex 2
       ]
 
-commonCS :: MintingBuilder
-commonCS = withMinting $ CurrencySymbol "currency-symbol-one"
+commonPurpose :: MintingBuilder
+commonPurpose = withMinting $ CurrencySymbol "currency-symbol-one"
 
 goodCtx1 :: ScriptContext
 goodCtx1 =
@@ -94,7 +94,7 @@ goodCtx1 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     outputPubKey :: Builder a => a
@@ -118,7 +118,7 @@ goodCtx2 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     outputPubKey :: Builder a => a
@@ -142,7 +142,7 @@ badCtx1 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     oneCurrencySymboldualTokenName =
@@ -171,7 +171,7 @@ badCtx2 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     dualCurrencySymboldualTokenName =
@@ -201,7 +201,7 @@ badCtx3 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     wrongScriptInput =
@@ -234,7 +234,7 @@ badCtx4 =
       , outputPubKey
       , signedWith samplePubKeyHash1
       , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
-      , commonCS
+      , commonPurpose
       ]
   where
     outputPubKey :: Builder a => a
