@@ -63,8 +63,14 @@ samplePubKeyHash2 = "ea2484f839e72f5bd60e004e74b564bb75f79a980b22c55d88f4b8bb"
 cBTCTokenName :: TokenName
 cBTCTokenName = "cBTC"
 
+cBTCCurrencySymbol :: CurrencySymbol
+cBTCCurrencySymbol = "746fa3ba2daded6ab9ccc1e39d3835aa1dfcb9b5a54acc2ebe6b79a4"
+
 falseTokenName :: TokenName
 falseTokenName = "False"
+
+falseCurrencySymbol :: CurrencySymbol
+falseCurrencySymbol = "6174a599ba1d798e021bca4fa97be7f173aa3ca51a28373fa447744a"
 
 inputScript :: Builder a => a
 inputScript =
@@ -88,13 +94,13 @@ inputPubKey =
       ]
 
 commonPurpose :: MintingBuilder
-commonPurpose = withMinting $ CurrencySymbol "currency-symbol-one"
+commonPurpose = withMinting $ cBTCCurrencySymbol
 
 goodCtx1 :: ScriptContext
 goodCtx1 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+      [ mint $ singleton cBTCCurrencySymbol cBTCTokenName 1
       , inputScript
       , inputPubKey
       , outputPubKey
@@ -110,7 +116,7 @@ goodCtx1 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+                  <> singleton cBTCCurrencySymbol cBTCTokenName 1
               )
           ]
 
@@ -118,7 +124,7 @@ goodCtx2 :: ScriptContext
 goodCtx2 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 10
+      [ mint $ singleton cBTCCurrencySymbol cBTCTokenName 10
       , inputScript
       , inputPubKey
       , outputPubKey
@@ -134,7 +140,7 @@ goodCtx2 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 10
+                  <> singleton cBTCCurrencySymbol cBTCTokenName 10
               )
           ]
 
@@ -153,8 +159,8 @@ badCtx1 =
       ]
   where
     oneCurrencySymboldualTokenName =
-      singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 2
-        <> singleton (CurrencySymbol "currency-symbol-one") falseTokenName 2
+      singleton cBTCCurrencySymbol cBTCTokenName 2
+        <> singleton cBTCCurrencySymbol falseTokenName 2
 
     outputPubKey :: Builder a => a
     outputPubKey =
@@ -182,8 +188,8 @@ badCtx2 =
       ]
   where
     dualCurrencySymboldualTokenName =
-      singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 2
-        <> singleton (CurrencySymbol "currency-symbol-two") falseTokenName 2
+      singleton cBTCCurrencySymbol cBTCTokenName 2
+        <> singleton falseCurrencySymbol falseTokenName 2
 
     outputPubKey :: Builder a => a
     outputPubKey =
@@ -201,7 +207,7 @@ badCtx3 :: ScriptContext
 badCtx3 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+      [ mint $ singleton cBTCCurrencySymbol cBTCTokenName 1
       , wrongScriptInput
       , inputPubKey
       , outputPubKey
@@ -226,7 +232,7 @@ badCtx3 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+                  <> singleton cBTCCurrencySymbol cBTCTokenName 1
               )
           ]
 
@@ -235,7 +241,7 @@ badCtx4 :: ScriptContext
 badCtx4 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+      [ mint $ singleton cBTCCurrencySymbol cBTCTokenName 1
       , inputPubKey
       , outputPubKey
       , signedWith samplePubKeyHash1
@@ -250,7 +256,7 @@ badCtx4 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 1
-                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
+                  <> singleton cBTCCurrencySymbol cBTCTokenName 1
               )
           ]
 
@@ -259,7 +265,7 @@ badCtx5 :: ScriptContext
 badCtx5 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") falseTokenName 1
+      [ mint $ singleton cBTCCurrencySymbol falseTokenName 1
       , inputScript
       , inputPubKey
       , outputPubKey
@@ -275,7 +281,7 @@ badCtx5 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") falseTokenName 1
+                  <> singleton cBTCCurrencySymbol falseTokenName 1
               )
           ]
 
@@ -341,7 +347,7 @@ sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
 sampleTestEval :: Term s POpaque
 sampleTestEval =
   MintCBTC.policy
-    # (pconstantData cBTCTokenName)
-    # (pconstantData sampleScriptHash)
+    # (pconstant cBTCTokenName)
+    # (pconstant sampleScriptHash)
     # (pconstant $ PlutusTx.toData ())
     # (pconstant badCtx5)

@@ -15,20 +15,20 @@ import "liqwid-plutarch-extra" Plutarch.Extra.Value (passetClassValueOf)
 import Utils (phasOneCurrecySymbolOneTokenName, phasScriptHash)
 
 -- | cBTC Minting Policy:
-policy :: ClosedTerm ((PAsData PTokenName) :--> (PAsData PScriptHash) :--> PMintingPolicy)
+policy :: ClosedTerm (PTokenName :--> PScriptHash :--> PMintingPolicy)
 policy = plam $ \cBTCTokenName guardianScriptHash _redeemer ctx' -> unTermCont $ do
   ctx <- pletFieldsC @["txInfo", "purpose"] ctx'
   PMinting ownCurrencySymbol' <- pmatchC ctx.purpose
   ownCurrencySymbol <- pletC $ pfield @"_0" # ownCurrencySymbol'
   txInfo <- pletFieldsC @["inputs", "outputs", "mint"] ctx.txInfo
-  assetClassCBTC <- pletC $ passetClass # ownCurrencySymbol # (pfromData cBTCTokenName)
+  assetClassCBTC <- pletC $ passetClass # ownCurrencySymbol # (cBTCTokenName)
   amnt <- pletC $ passetClassValueOf # assetClassCBTC # txInfo.mint
   ptraceC $ pshow amnt
   ptraceC $ pshow guardianScriptHash
-  ptraceC $ pshow $ (pany # (phasScriptHash # pfromData guardianScriptHash) # txInfo.inputs)
+  ptraceC $ pshow $ (pany # (phasScriptHash # guardianScriptHash) # txInfo.inputs)
   let validate =
         (phasOneCurrecySymbolOneTokenName #$ pnormalize # txInfo.mint)
-          #&& (pany # (phasScriptHash # pfromData guardianScriptHash) # txInfo.inputs)
+          #&& (pany # (phasScriptHash # guardianScriptHash) # txInfo.inputs)
           #&& (0 #< amnt)
           #|| (amnt #< 0)
   pure $
