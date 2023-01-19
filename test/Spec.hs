@@ -5,6 +5,7 @@ import Test.Tasty (
   testGroup,
  )
 
+import Data.Text.IO qualified as TIO
 import Spec.GuardianValidatorSpec qualified as GuardianValidatorSpec
 import Spec.MintCBTCSpec qualified as MintCBTCSpec
 import Utils (evalT)
@@ -21,11 +22,11 @@ main = do
 mainEval1 :: IO ()
 mainEval1 = do
   case evalT MintCBTCSpec.sampleTestEval of
-    Left _ -> putStrLn "Error"
+    Left e -> TIO.putStrLn e
     Right r -> putStrLn (show r)
 
 mainEval2 :: IO ()
 mainEval2 = do
   case evalT GuardianValidatorSpec.sampleTestEval of
-    Left _ -> putStrLn "Error"
+    Left e -> TIO.putStrLn e
     Right r -> putStrLn (show r)
