@@ -1,13 +1,36 @@
 module Main (main) where
 
-import Data.Default (
-  def,
+import CBTCMintPolicy qualified
+import GuardianValidator qualified
+import MultiSigMintPolicy qualified
+import MultiSigValidator qualified
+import System.Directory (
+  createDirectoryIfMissing,
+  doesDirectoryExist,
  )
-import MintCBTC qualified
-import Ply.Plutarch (
-  writeTypedScript,
- )
+import Utils (writePlutusScript)
 
 main :: IO ()
 main = do
-  writeTypedScript def "CBTC Minting Policy" "./mintCBTC.plutus" MintCBTC.policy
+  exist <- doesDirectoryExist "compiled"
+  createDirectoryIfMissing exist "compiled"
+
+  writePlutusScript
+    "Multisig Validator"
+    "./compiled/multisigValidator.plutus"
+    MultiSigValidator.validator
+
+  writePlutusScript
+    "Multisig Minting Policy"
+    "./compiled/multisigMintingPolicy.plutus"
+    MultiSigMintPolicy.policy
+
+  writePlutusScript
+    "Guardian Validator"
+    "./compiled/guardianValidator.plutus"
+    GuardianValidator.validator
+
+  writePlutusScript
+    "CBTC Minting Policy"
+    "./compiled/cBTCMintingPolicy.plutus"
+    CBTCMintPolicy.policy
