@@ -21,7 +21,7 @@ policy = plam $ \cBTCTokenName guardianScriptHash _redeemer ctx' -> unTermCont $
   PMinting ownCurrencySymbol' <- pmatchC ctx.purpose
   ownCurrencySymbol <- pletC $ pfield @"_0" # ownCurrencySymbol'
   txInfo <- pletFieldsC @["inputs", "outputs", "mint"] ctx.txInfo
-  assetClassCBTC <- pletC $ passetClass # ownCurrencySymbol # (cBTCTokenName)
+  assetClassCBTC <- pletC $ passetClass # ownCurrencySymbol # cBTCTokenName
   amnt <- pletC $ passetClassValueOf # assetClassCBTC # txInfo.mint
   ptraceC $ pshow amnt
   ptraceC $ pshow guardianScriptHash

@@ -30,7 +30,7 @@ import "plutarch-context-builder" Plutarch.Context (
   withValue,
  )
 import Plutarch.Lift (pconstant)
-import Plutarch.Prelude (POpaque, pconstantData, (#))
+import Plutarch.Prelude (POpaque, (#))
 import Plutarch.Test.Precompiled (
   Expectation (..),
   testEvalCase,
@@ -286,61 +286,47 @@ badCtx5 =
           ]
 
 sampleTest :: TestTree
-sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
+sampleTest = tryFromPTerm "Test MintCBTC" (MintCBTC.policy # (pconstant cBTCTokenName) # (pconstant sampleScriptHash)) $ do
   testEvalCase
     "Pass - 1 CurrencySymbol , 1 TokenName, 1 Integer"
     Success
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData () -- Unit
+    [ PlutusTx.toData () -- Unit
     , PlutusTx.toData goodCtx1 -- ScriptContext
     ]
   testEvalCase
     "Pass - 1 CurrencySymbol , 1 TokenName, 10 Integer"
     Success
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData () -- Unit
+    [ PlutusTx.toData () -- Unit
     , PlutusTx.toData goodCtx2 -- ScriptContext
     ]
   testEvalCase
     "Fail - 1 CurrencySymbol , 2 TokenName, 2 Integer per TokenName"
     Failure
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData ()
+    [ PlutusTx.toData ()
     , PlutusTx.toData badCtx1
     ]
   testEvalCase
     "Fail - 2 CurrencySymbol , 2 TokenName, 2 Integer per TokenName"
     Failure
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData ()
+    [ PlutusTx.toData ()
     , PlutusTx.toData badCtx2
     ]
   testEvalCase
     "Fail - Wrong ScriptHash"
     Failure
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData ()
+    [ PlutusTx.toData ()
     , PlutusTx.toData badCtx3
     ]
   testEvalCase
     "Fail - Missing Script Input"
     Failure
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData ()
+    [ PlutusTx.toData ()
     , PlutusTx.toData badCtx4
     ]
   testEvalCase
     "Fail - Using wrong TokenName"
     Failure
-    [ PlutusTx.toData cBTCTokenName
-    , PlutusTx.toData sampleScriptHash
-    , PlutusTx.toData ()
+    [ PlutusTx.toData ()
     , PlutusTx.toData badCtx5
     ]
 
