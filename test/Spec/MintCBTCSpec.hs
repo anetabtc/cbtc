@@ -60,6 +60,12 @@ samplePubKeyHash1 = "0d342d962a7aaac57e30d3f8dd2f41907a361860f8889253ebe40bbb"
 samplePubKeyHash2 :: PubKeyHash
 samplePubKeyHash2 = "ea2484f839e72f5bd60e004e74b564bb75f79a980b22c55d88f4b8bb"
 
+cBTCTokenName :: TokenName
+cBTCTokenName = "cBTC"
+
+falseTokenName :: TokenName
+falseTokenName = "False"
+
 inputScript :: Builder a => a
 inputScript =
   input $
@@ -88,7 +94,7 @@ goodCtx1 :: ScriptContext
 goodCtx1 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
       , inputScript
       , inputPubKey
       , outputPubKey
@@ -104,7 +110,7 @@ goodCtx1 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
               )
           ]
 
@@ -112,7 +118,7 @@ goodCtx2 :: ScriptContext
 goodCtx2 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 10
+      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 10
       , inputScript
       , inputPubKey
       , outputPubKey
@@ -128,7 +134,7 @@ goodCtx2 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 10
+                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 10
               )
           ]
 
@@ -146,8 +152,8 @@ badCtx1 =
       ]
   where
     oneCurrencySymboldualTokenName =
-      singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 2
-        <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-two") 2
+      singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 2
+        <> singleton (CurrencySymbol "currency-symbol-one") falseTokenName 2
 
     outputPubKey :: Builder a => a
     outputPubKey =
@@ -156,8 +162,7 @@ badCtx1 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-two") 2
+                  <> oneCurrencySymboldualTokenName
               )
           ]
 
@@ -175,8 +180,8 @@ badCtx2 =
       ]
   where
     dualCurrencySymboldualTokenName =
-      singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 2
-        <> singleton (CurrencySymbol "currency-symbol-two") (TokenName "token-two") 2
+      singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 2
+        <> singleton (CurrencySymbol "currency-symbol-two") falseTokenName 2
 
     outputPubKey :: Builder a => a
     outputPubKey =
@@ -185,8 +190,7 @@ badCtx2 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 2
-                  <> singleton (CurrencySymbol "currency-symbol-two") (TokenName "token-two") 2
+                  <> dualCurrencySymboldualTokenName
               )
           ]
 
@@ -195,7 +199,7 @@ badCtx3 :: ScriptContext
 badCtx3 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
       , wrongScriptInput
       , inputPubKey
       , outputPubKey
@@ -220,7 +224,7 @@ badCtx3 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 2
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
               )
           ]
 
@@ -229,7 +233,7 @@ badCtx4 :: ScriptContext
 badCtx4 =
   buildMinting checkPhase1 $
     mconcat
-      [ mint $ singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+      [ mint $ singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
       , inputPubKey
       , outputPubKey
       , signedWith samplePubKeyHash1
@@ -244,7 +248,7 @@ badCtx4 =
           [ pubKey samplePubKeyHash2
           , withValue
               ( singleton adaSymbol adaToken 1
-                  <> singleton (CurrencySymbol "currency-symbol-one") (TokenName "token-one") 1
+                  <> singleton (CurrencySymbol "currency-symbol-one") cBTCTokenName 1
               )
           ]
 
@@ -253,42 +257,48 @@ sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
   testEvalCase
     "Pass - 1 CurrencySymbol , 1 TokenName, 1 Integer"
     Success
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData () -- Unit
     , PlutusTx.toData goodCtx1 -- ScriptContext
     ]
   testEvalCase
     "Pass - 1 CurrencySymbol , 1 TokenName, 10 Integer"
     Success
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData () -- Unit
     , PlutusTx.toData goodCtx2 -- ScriptContext
     ]
   testEvalCase
     "Fail - 1 CurrencySymbol , 2 TokenName, 2 Integer per TokenName"
     Failure
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData ()
     , PlutusTx.toData badCtx1
     ]
   testEvalCase
     "Fail - 2 CurrencySymbol , 2 TokenName, 2 Integer per TokenName"
     Failure
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData ()
     , PlutusTx.toData badCtx2
     ]
   testEvalCase
     "Fail - Wrong ScriptHash"
     Failure
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData ()
     , PlutusTx.toData badCtx3
     ]
   testEvalCase
     "Fail - Missing Script Input"
     Failure
-    [ PlutusTx.toData sampleScriptHash
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
     , PlutusTx.toData ()
     , PlutusTx.toData badCtx4
     ]
@@ -296,6 +306,7 @@ sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
 sampleTestEval :: Term s POpaque
 sampleTestEval =
   MintCBTC.policy
+    # (pconstantData cBTCTokenName)
     # (pconstantData sampleScriptHash)
     # (pconstant $ PlutusTx.toData ())
     # (pconstant goodCtx1)
