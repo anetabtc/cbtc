@@ -138,6 +138,7 @@ goodCtx2 =
               )
           ]
 
+-- | One CurrencySymbol and Two TokenName
 badCtx1 :: ScriptContext
 badCtx1 =
   buildMinting checkPhase1 $
@@ -166,6 +167,7 @@ badCtx1 =
               )
           ]
 
+-- | Two CurrencySymbol and Two TokenName
 badCtx2 :: ScriptContext
 badCtx2 =
   buildMinting checkPhase1 $
@@ -252,6 +254,31 @@ badCtx4 =
               )
           ]
 
+-- | Using wrong TokenName
+badCtx5 :: ScriptContext
+badCtx5 =
+  buildMinting checkPhase1 $
+    mconcat
+      [ mint $ singleton (CurrencySymbol "currency-symbol-one") falseTokenName 1
+      , inputScript
+      , inputPubKey
+      , outputPubKey
+      , signedWith samplePubKeyHash1
+      , txId "b2dfbe34017b9061464f401ec924ece385bb3ec07061c27907844b4d3ef6666e"
+      , commonPurpose
+      ]
+  where
+    outputPubKey :: Builder a => a
+    outputPubKey =
+      output $
+        mconcat
+          [ pubKey samplePubKeyHash2
+          , withValue
+              ( singleton adaSymbol adaToken 2
+                  <> singleton (CurrencySymbol "currency-symbol-one") falseTokenName 1
+              )
+          ]
+
 sampleTest :: TestTree
 sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
   testEvalCase
@@ -302,6 +329,14 @@ sampleTest = tryFromPTerm "Test MintCBTC" MintCBTC.policy $ do
     , PlutusTx.toData ()
     , PlutusTx.toData badCtx4
     ]
+  testEvalCase
+    "Fail - Using wrong TokenName"
+    Failure
+    [ PlutusTx.toData cBTCTokenName
+    , PlutusTx.toData sampleScriptHash
+    , PlutusTx.toData ()
+    , PlutusTx.toData badCtx5
+    ]
 
 sampleTestEval :: Term s POpaque
 sampleTestEval =
@@ -309,4 +344,4 @@ sampleTestEval =
     # (pconstantData cBTCTokenName)
     # (pconstantData sampleScriptHash)
     # (pconstant $ PlutusTx.toData ())
-    # (pconstant goodCtx1)
+    # (pconstant badCtx5)
