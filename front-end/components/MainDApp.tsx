@@ -2,11 +2,11 @@ import initLucid from "@/utils/lucid";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
+import { Request } from "./Request";
 
 const MainDApp = () => {
 	const walletStore = useStoreState((state: any) => state.wallet);
 	const [lucid, setLucid] = useState<Lucid>();
-	const [rafflePolicy, setRafflePolicy] = useState();
 	const [whiteListed, setWhiteListed] = useState(false);
 
 	const isWhiteListed = async () => {
@@ -18,20 +18,20 @@ const MainDApp = () => {
 
 	useEffect(() => {
 		isWhiteListed();
-		console.log("Raffle.tsx -> whiteListed", whiteListed);
-		console.log("Raffle.tsx -> lucid", lucid);
-		console.log("Raffle.tsx -> walletStore.connected", walletStore.connected);
+		console.log('whiteListed: ', whiteListed)
 		if (whiteListed && walletStore.connected && !lucid) {
-			console.log("Raffle.tsx -> initLucid");
+			console.log("initialize lucid");
 			initLucid(walletStore.name).then((Lucid: Lucid) => {
 				setLucid(Lucid);
 			});
 		}
 	}, [lucid, walletStore.connected, whiteListed]);
 
+	if (!lucid) return null
+
 	return (
         <div className="flex items-center">
-
+			<Request lucid={lucid}/>
         </div>
     )
 };

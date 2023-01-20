@@ -18,7 +18,6 @@ const WalletConnect = () => {
     }
 
     const walletConnected = async (wallet: string) => {
-        console.log('WalletConnect.tsx -> walletConnected')
         const addr = await (await initLucid(wallet)).wallet.address()
         const walletStoreObj = { connected: true, name: wallet, address: addr }
         setConnectedAddress(addr)
