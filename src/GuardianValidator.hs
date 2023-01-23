@@ -44,12 +44,12 @@ instance PUnsafeLiftDecl PGuardianDatum where type PLifted PGuardianDatum = Guar
 deriving via (DerivePConstantViaData GuardianDatum PGuardianDatum) instance (PConstantDecl GuardianDatum)
 instance PTryFrom PData (PAsData PGuardianDatum)
 
-validator :: ClosedTerm ((PAsData (PBuiltinList (PAsData PPubKeyHash))) :--> PValidator)
+validator :: ClosedTerm ((PBuiltinList PPubKeyHash) :--> PValidator)
 validator = plam $ \pkhList _datum' _redeemer' ctx' ->
   unTermCont $ do
     ctx <- pletFieldsC @["txInfo", "purpose"] ctx'
     txInfo <- pletFieldsC @["inputs", "outputs", "signatories"] ctx.txInfo
-    cosigners <- pletC $ pmap # (ptxSignedBy # txInfo.signatories) # (pfromData pkhList)
+    cosigners <- pletC $ pmap # plam ((ptxSignedBy # txInfo.signatories #) . pdata) # pkhList
     let validate = pall # plam (#== pcon PTrue) # cosigners
     ptraceC $ pshow validate
     pure $

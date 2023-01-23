@@ -104,18 +104,17 @@ goodCtx1 =
           ]
 
 sampleTest :: TestTree
-sampleTest = tryFromPTerm "Test GuardianValidator" GuardianValidator.validator $ do
+sampleTest = tryFromPTerm "Test GuardianValidator" (GuardianValidator.validator # pubKeyHashList) $ do
   testEvalCase
     "Pass "
     Success
-    [ PlutusTx.toData [samplePubKeyHash1] -- Parameter [PubKeyHash]
-    , PlutusTx.toData () -- Datum Unit
+    [ PlutusTx.toData () -- Datum Unit
     , PlutusTx.toData () -- Redeemer Unit
     , PlutusTx.toData goodCtx1 -- ScriptContext
     ]
 
-pubKeyHashList :: forall {s :: S}. Term s (PAsData (PBuiltinList (PAsData PPubKeyHash)))
-pubKeyHashList = pdata $ pcons # (pconstantData samplePubKeyHash1) # pnil
+pubKeyHashList :: forall {s :: S}. Term s (PBuiltinList PPubKeyHash)
+pubKeyHashList = pcons # (pconstant samplePubKeyHash1) # pnil
 
 sampleTestEval :: Term s POpaque
 sampleTestEval =
