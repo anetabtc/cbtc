@@ -96,6 +96,7 @@ common lang
 common dependencies
   build-depends:
     , aeson
+    , aeson-pretty
     , base
     , base16-bytestring
     , bytestring
@@ -116,6 +117,7 @@ common dependencies
 
 common test-dependencies
   build-depends:
+    , aeson-pretty
     , base
     , bytestring
     , hedgehog
