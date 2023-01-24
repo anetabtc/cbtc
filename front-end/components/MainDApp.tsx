@@ -2,6 +2,7 @@ import initLucid from "@/utils/lucid";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
+import { FullfillRequest } from "./FullfillRequest";
 import { Request } from "./Request";
 
 const MainDApp = () => {
@@ -30,8 +31,9 @@ const MainDApp = () => {
 	if (!lucid) return null
 
 	return (
-        <div className="flex items-center">
+        <div className="flex-column justify-center items-center">
 			<Request lucid={lucid}/>
+			<FullfillRequest lucid={lucid}/>
         </div>
     )
 };

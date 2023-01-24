@@ -50,6 +50,9 @@ validator = plam $ \pkhList _datum' _redeemer' ctx' ->
     ctx <- pletFieldsC @["txInfo", "purpose"] ctx'
     txInfo <- pletFieldsC @["inputs", "outputs", "signatories"] ctx.txInfo
     cosigners <- pletC $ pmap # plam ((ptxSignedBy # txInfo.signatories #) . pdata) # pkhList
+    ptraceC $ pshow pkhList
+    ptraceC $ pshow txInfo.signatories
+    ptraceC $ pshow cosigners
     let validate = pall # plam (#== pcon PTrue) # cosigners
     ptraceC $ pshow validate
     pure $

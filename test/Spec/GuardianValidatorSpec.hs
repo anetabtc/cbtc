@@ -50,7 +50,7 @@ sampleScriptHash :: ScriptHash
 sampleScriptHash = "395e0b6c308dbdfd6e41354b68f833b96990ecd93721699ed90a2113"
 
 samplePubKeyHash1 :: PubKeyHash
-samplePubKeyHash1 = "0d342d962a7aaac57e30d3f8dd2f41907a361860f8889253ebe40bbb"
+samplePubKeyHash1 = "6b846eaacc07c6d27285af01eb9851e1afcbb7786f06833e06ef11a7"
 
 samplePubKeyHash2 :: PubKeyHash
 samplePubKeyHash2 = "ea2484f839e72f5bd60e004e74b564bb75f79a980b22c55d88f4b8bb"
