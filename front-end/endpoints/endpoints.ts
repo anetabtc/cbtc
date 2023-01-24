@@ -1,4 +1,4 @@
-import { guardianValidatorParams } from "@/utils/validators";
+import { guardianValidator } from "@/utils/validators";
 import {
 	Constr,
 	Lucid,
@@ -13,11 +13,6 @@ export const submitRequest = async (lucid: Lucid) => {
 			console.log("submiting request");
 			const pkh: string = lucid.utils.getAddressDetails(await lucid.wallet.address()).paymentCredential?.hash || "";
 			console.log(pkh);
-
-			const guardianValidator: SpendingValidator = {
-				type: "PlutusV2",
-				script: guardianValidatorParams.cborHex,
-			};
 
 			const guardianValidatorAddr: Address = lucid.utils.validatorToAddress(guardianValidator);
 			const Datum = Data.to(new Constr(0, []));
@@ -51,11 +46,6 @@ export const fullfillRequest = async (lucid: Lucid) => {
 
 			const pkh: string = lucid.utils.getAddressDetails(await lucid.wallet.address()).paymentCredential?.hash || "";
 			console.log(pkh);
-
-			const guardianValidator: SpendingValidator = {
-				type: "PlutusV2",
-				script: guardianValidatorParams.cborHex,
-			};
 
 			const guardianValidatorAddr: Address = lucid.utils.validatorToAddress(guardianValidator);
 
