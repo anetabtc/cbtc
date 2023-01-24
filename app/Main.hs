@@ -9,6 +9,10 @@ import PlutusLedgerApi.V2 (PubKeyHash, ScriptHash, TokenName)
 import Ply.Plutarch (
   writeTypedScript,
  )
+import System.Directory (
+  createDirectoryIfMissing,
+  doesDirectoryExist,
+ )
 import Utils (compileD, writePlutusScript)
 
 samplePubKeyHash1 :: PubKeyHash
@@ -19,6 +23,8 @@ pubKeyHashList = pcons # (pconstant samplePubKeyHash1) # pnil
 
 main :: IO ()
 main = do
+  exist <- doesDirectoryExist "compiled"
+  createDirectoryIfMissing exist "compiled"
   writeTypedScript
     (Config DoTracing)
     "Guardian Validator"

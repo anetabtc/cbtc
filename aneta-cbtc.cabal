@@ -103,6 +103,7 @@ common dependencies
     , cardano-binary
     , cborg
     , data-default
+    , directory
     , liqwid-plutarch-extra
     , plutarch
     , plutarch-extra
