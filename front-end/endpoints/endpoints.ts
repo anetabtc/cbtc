@@ -1,10 +1,10 @@
-import { guardianValidator } from "@/utils/validators";
+import { guardianMinter, guardianValidator } from "@/utils/validators";
 import {
 	Constr,
 	Lucid,
-	SpendingValidator,
 	Data,
 	Address,
+	utf8ToHex,
 } from "lucid-cardano";
 
 export const submitRequest = async (lucid: Lucid) => {
@@ -56,13 +56,19 @@ export const fullfillRequest = async (lucid: Lucid) => {
             if (!walletUtxos.length) throw new Error("No utxos at Wallet");
 
 			const Redeemer = Data.to(new Constr(0, []));
-
+			const RedeemerPolicy = Data.to(new Constr(0, [])) 
 			console.log(scriptUtxos);
+
+			const policyID = lucid.utils.mintingPolicyToId(guardianMinter)
+			const unit = policyID + utf8ToHex("cBTC")
+			const asset = {[unit]: BigInt(1)}
 
 			const tx = await lucid
 				.newTx()
 				.collectFrom(scriptUtxos, Redeemer)
 				.attachSpendingValidator(guardianValidator)
+				.attachMintingPolicy(guardianMinter)
+				.mintAssets(asset, RedeemerPolicy)
 				.addSignerKey(pkh)
 				.complete();
 
