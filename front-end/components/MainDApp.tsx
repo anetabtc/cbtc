@@ -2,7 +2,7 @@ import initLucid from "@/utils/lucid";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
-import { FullfillRequest } from "./FullfillRequest";
+import { FullfillRequests } from "./FullfillRequests";
 import { Request } from "./Request";
 
 const MainDApp = () => {
@@ -19,7 +19,7 @@ const MainDApp = () => {
 
 	useEffect(() => {
 		isWhiteListed();
-		console.log('whiteListed: ', whiteListed)
+		console.log("whiteListed: ", whiteListed);
 		if (whiteListed && walletStore.connected && !lucid) {
 			console.log("initialize lucid");
 			initLucid(walletStore.name).then((Lucid: Lucid) => {
@@ -28,14 +28,14 @@ const MainDApp = () => {
 		}
 	}, [lucid, walletStore.connected, whiteListed]);
 
-	if (!lucid) return null
+	if (!lucid) return null;
 
 	return (
-        <div className="flex-column justify-center items-center">
-			<Request lucid={lucid}/>
-			<FullfillRequest lucid={lucid}/>
-        </div>
-    )
+		<div className="flex-column justify-center items-center">
+			<Request lucid={lucid} />
+			<FullfillRequests lucid={lucid} />
+		</div>
+	);
 };
 
 export default MainDApp;
