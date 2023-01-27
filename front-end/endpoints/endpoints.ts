@@ -4,9 +4,10 @@ import {
 	Lucid,
 	Data,
 	Address,
-	utf8ToHex,
 	AddressDetails,
 	Credential,
+	fromText,
+	toUnit,
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO } from "./types";
 
@@ -72,7 +73,7 @@ export const fullfillRequests = async (
 		const RedeemerPolicy = Data.to(new Constr(0, []));
 
 		const policyID = lucid.utils.mintingPolicyToId(guardianMinter);
-		const unit = policyID + utf8ToHex("cBTC");
+		const unit = toUnit(policyID, fromText("cBTC"));
 
 		console.log("datumUtxoList: ", datumUtxoList);
 
