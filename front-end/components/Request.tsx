@@ -1,4 +1,4 @@
-import { submitRequest } from "@/endpoints/endpoints";
+import { submitRequest } from "@/endpoints/request";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
 

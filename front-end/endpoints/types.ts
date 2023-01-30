@@ -1,4 +1,4 @@
-import { Data, UTxO } from "lucid-cardano";
+import { Data, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
 	datum: { amountDeposit: bigint; address: string };
@@ -10,3 +10,15 @@ export type AnyDatumUTXO = {
 	datum: { amountDeposit: bigint; address: string } | Data;
 	utxo: UTxO;
 };
+
+
+export type ConfigMultisig = {
+	threshold : number
+	cosignerKeys : [string]
+}
+
+export type ConfigUpdate = {
+	unit: Unit;
+	oldCosignerKeys: [string];
+	newConfig : ConfigMultisig;
+}

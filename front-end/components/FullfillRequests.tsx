@@ -1,7 +1,8 @@
 import { getAllDatums, getValidDatums } from "@/endpoints/utils";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import { assembleTx, buildTx, partialSignTx } from "@/endpoints/fullfillRequests";
+import { assembleTx, buildTx, partialSignTx } from "@/endpoints/fullfill";
+import { runEmulator } from "@/endpoints/runEmulator";
 
 interface Props {
 	lucid: Lucid;
@@ -46,6 +47,11 @@ export const FullfillRequests = ({ lucid }: Props) => {
 		console.log(result);
 	};
 
+	const handleClick3 = async () => {
+		await runEmulator();
+	};
+
+
 	return (
 		<div>
 			<button
@@ -67,6 +73,13 @@ export const FullfillRequests = ({ lucid }: Props) => {
 				onClick={() => handleClick2()}
 			>
 				Get Valid Datums
+			</button>
+
+			<button
+				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+				onClick={() => handleClick3()}
+			>
+				Emulator
 			</button>
 
 			{error && (
