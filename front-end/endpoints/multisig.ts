@@ -56,7 +56,7 @@ export const initialize = async (lucid: Lucid, config: ConfigMultisig) => {
 	return { txHash, policy, unit };
 };
 
-export const update = async (lucid: Lucid, config: ConfigUpdate) => {
+export const buildUpdate = async (lucid: Lucid, config: ConfigUpdate) => {
 	const scriptUtxo = await lucid.utxoByUnit(config.unit);
 	const datumAsCbor = scriptUtxo.datum || "";
 	const datumAsData = Data.from(datumAsCbor);
@@ -75,17 +75,47 @@ export const update = async (lucid: Lucid, config: ConfigUpdate) => {
 	);
 	const RedeemerUpdate = Data.to(new Constr(0, []));
 
+	const signers = config.oldCosignerKeys
+		.map((cosignerKey) => {
+			return lucid.newTx().addSignerKey(cosignerKey);
+		})
+		.reduce((prevTx, tx) => {
+			return prevTx.compose(tx);
+		});
+
 	const tx = await lucid
 		.newTx()
 		.collectFrom([scriptUtxo], RedeemerUpdate)
 		.attachSpendingValidator(guardianMultisig)
-		.payToContract(guardianMultisigAddr, Datum, scriptUtxo.assets)
+		.payToContract(guardianMultisigAddr, { inline : Datum}, scriptUtxo.assets)
+		// .compose(signers)
+		// .addSignerKey(config.oldCosignerKeys[0])
+		// .addSignerKey(config.oldCosignerKeys[1])
+		// .addSignerKey(config.oldCosignerKeys[2])
 		.complete();
 	
 	// TODO: convert to a partial sign so that the old cosigners can sign this tx
 
-	const signedTx = await tx.sign().complete();
-	const txHash = await signedTx.submit();
-	return txHash
+	return {
+		txCbor : tx.toString()
+	}
+};
 
+
+export const signUpdate = async (lucid: Lucid, txAsCbor: string) => {
+	//TODO: ask Ales if partialSign adds the pubkehash to txinfosignatories like addSignerKey
+	return await lucid.fromTx(txAsCbor).partialSign();
+};
+
+export const assembleUpdate = async (
+	lucid: Lucid,
+	txAsCbor: string,
+	witnesses: string[]
+) => {
+	const signedTx = await lucid.fromTx(txAsCbor).assemble(witnesses).complete();
+	// console.log('witness', signedTx.txSigned.witness_set().vkeys()?.get(0).vkey().public_key().hash().to_hex())
+	// console.log('witness', signedTx.txSigned.witness_set().to_json())
+
+	// const txHash = signedTx.submit();
+    // return txHash
 };

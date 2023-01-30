@@ -14,11 +14,11 @@ export type AnyDatumUTXO = {
 
 export type ConfigMultisig = {
 	threshold : number
-	cosignerKeys : [string]
+	cosignerKeys : string[]
 }
 
 export type ConfigUpdate = {
 	unit: Unit;
-	oldCosignerKeys: [string];
+	oldCosignerKeys: string[];
 	newConfig : ConfigMultisig;
 }
