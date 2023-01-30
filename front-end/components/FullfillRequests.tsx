@@ -1,10 +1,7 @@
-import {
-	fullfillRequests,
-	getAllDatums,
-	getValidDatums,
-} from "@/endpoints/endpoints";
-import { Lucid, UTxO } from "lucid-cardano";
+import { getAllDatums, getValidDatums } from "@/endpoints/utils";
+import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
+import { assembleTx, buildTx, partialSignTx } from "@/endpoints/fullfillRequests";
 
 interface Props {
 	lucid: Lucid;
@@ -30,8 +27,13 @@ export const FullfillRequests = ({ lucid }: Props) => {
 			console.log("No valid datums at Guardian Script");
 			return null;
 		}
-		const result = await fullfillRequests(lucid, validDatums);
-		result ? setError(result) : setError("");
+		// const result = await fullfillRequests(lucid, validDatums);
+		// result ? setError(result) : setError("");
+		const cosigner = await lucid.wallet.address() 
+		const txAsCbor = await buildTx(lucid,validDatums,[cosigner])
+		const witness1 = await partialSignTx(lucid, txAsCbor)
+		const txHash = await assembleTx(lucid,txAsCbor,[witness1])
+		console.log(txHash)
 	};
 
 	const handleClick1 = async () => {
