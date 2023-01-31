@@ -1,12 +1,5 @@
 import { guardianValidator } from "@/utils/validators";
-import {
-	Constr,
-	Lucid,
-	Data,
-	Address,
-	AddressDetails,
-} from "lucid-cardano";
-
+import { Constr, Lucid, Data, Address, AddressDetails } from "lucid-cardano";
 
 export const submitRequest = async (
 	lucid: Lucid,

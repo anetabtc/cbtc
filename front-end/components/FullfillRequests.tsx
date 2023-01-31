@@ -2,7 +2,7 @@ import { getAllDatums, getValidDatums } from "@/endpoints/utils";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
 import { assembleTx, buildTx, partialSignTx } from "@/endpoints/fullfill";
-import { runEmulator } from "@/endpoints/runEmulator";
+import * as runSimulator from "@/endpoints/runSimulator"
 
 interface Props {
 	lucid: Lucid;
@@ -48,7 +48,7 @@ export const FullfillRequests = ({ lucid }: Props) => {
 	};
 
 	const handleClick3 = async () => {
-		await runEmulator();
+		await runSimulator.sign(lucid)
 	};
 
 

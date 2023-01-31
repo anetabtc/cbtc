@@ -1,87 +1,76 @@
 import { guardianMultisig } from "@/utils/validators";
-import { Assets, Emulator, generatePrivateKey, Lucid } from "lucid-cardano";
 import {
-	assembleUpdate,
-	buildUpdate,
-	initialize,
-	signUpdate,
-} from "./multisig";
-import { ConfigMultisig, ConfigUpdate } from "./types";
+	Assets,
+	Emulator,
+	fromText,
+	generatePrivateKey,
+	generateSeedPhrase,
+	Lucid,
+	toUnit,
+} from "lucid-cardano";
+import * as multisig_update from "./multisig.update";
+import * as multisig_init from "./multisig.init";
+import { ConfigInit, ConfigUpdate } from "./types";
 
-export const runEmulator = async () => {
-
-	const buildAddress = async (assets: Assets) => {
-		const privKey = generatePrivateKey()
-		const address = await (await Lucid.new(undefined, "Custom"))
+const buildAddress = async (assets: Assets) => {
+	const privKey = generatePrivateKey();
+	const address = await (await Lucid.new(undefined, "Custom"))
 		.selectWalletFromPrivateKey(privKey)
 		.wallet.address();
 
-		return {
-			privateKey: privKey,
-			address: address,
-			assets : assets
-		}
+	return {
+		privateKey: privKey,
+		address: address,
+		assets: assets,
+	};
+};
 
-	}
-	const privateKey1  = generatePrivateKey();
-	const privateKey2  = generatePrivateKey();
-	const privateKey3  = generatePrivateKey();
-	const privateKey11 = generatePrivateKey();
-	const privateKey12 = generatePrivateKey();
-	const privateKey13 = generatePrivateKey();
+async function generateAccount(assets: Assets) {
+	const seedPhrase = generateSeedPhrase();
+	return {
+		seedPhrase,
+		address: await (await Lucid.new(undefined, "Custom"))
+			.selectWalletFromSeed(seedPhrase)
+			.wallet.address(),
+		assets,
+	};
+}
 
-	// const address1 = await (await Lucid.new(undefined, "Custom"))
-		// .selectWalletFromPrivateKey(privateKey1)
-		// .wallet.address();
-	const address1 = await buildAddress({lovelace: BigInt(7000000000)})
-
-	const address2 = await (await Lucid.new(undefined, "Custom"))
-		.selectWalletFromPrivateKey(privateKey2)
-		.wallet.address();
-
-	const address3 = await (await Lucid.new(undefined, "Custom"))
-		.selectWalletFromPrivateKey(privateKey3)
-		.wallet.address();
-
-	const address11 = await (await Lucid.new(undefined, "Custom"))
-		.selectWalletFromPrivateKey(privateKey11)
-		.wallet.address();
-
-	const address12 = await (await Lucid.new(undefined, "Custom"))
-		.selectWalletFromPrivateKey(privateKey12)
-		.wallet.address();
-
-	const address13 = await (await Lucid.new(undefined, "Custom"))
-		.selectWalletFromPrivateKey(privateKey13)
-		.wallet.address();
+export const runEmulator = async () => {
+	const account1 = await buildAddress({ lovelace: BigInt(7000000000) });
+	const account2 = await buildAddress({ lovelace: BigInt(100000000) });
+	const account3 = await buildAddress({ lovelace: BigInt(100000000) });
+	const account11 = await buildAddress({ lovelace: BigInt(100000000) });
+	const account12 = await buildAddress({ lovelace: BigInt(100000000) });
+	const account13 = await buildAddress({ lovelace: BigInt(100000000) });
 
 	// TODO: start using buildAddress function
 	const emulator = new Emulator([
-		address1,
-		{ address: address2, assets: { lovelace: BigInt(3000000000) } },
-		{ address: address3, assets: { lovelace: BigInt(3000000000) } },
-		{ address: address11, assets: { lovelace: BigInt(3000000000) } },
-		{ address: address12, assets: { lovelace: BigInt(3000000000) } },
-		{ address: address13, assets: { lovelace: BigInt(3000000000) } },
+		account1,
+		account2,
+		account3,
+		account11,
+		account12,
+		account13,
 	]);
 
-	console.log('emulator', emulator.ledger)
-	console.log('address1.address', address1.address)
+	console.log("emulator", emulator.ledger);
+	console.log("address1.address", account1.address);
 
 	const lucid = await Lucid.new(emulator);
 
-	lucid.selectWalletFromPrivateKey(address1.privateKey);
+	lucid.selectWalletFromPrivateKey(account1.privateKey);
 
-	const initConfig: ConfigMultisig = {
+	const initConfig: ConfigInit = {
 		threshold: 1,
 		cosignerKeys: [
-			lucid.utils.paymentCredentialOf(address1.address).hash,
-			lucid.utils.paymentCredentialOf(address2).hash,
-			lucid.utils.paymentCredentialOf(address3).hash,
+			lucid.utils.paymentCredentialOf(account1.address).hash,
+			lucid.utils.paymentCredentialOf(account2.address).hash,
+			lucid.utils.paymentCredentialOf(account3.address).hash,
 		],
 	};
 
-	const resultInitialize = await initialize(lucid, initConfig);
+	const initResult = await multisig_init.init(lucid, initConfig);
 
 	emulator.awaitBlock(4);
 
@@ -91,40 +80,47 @@ export const runEmulator = async () => {
 		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
 	);
 
-	const updateConfig: ConfigUpdate = {
-		unit: resultInitialize.unit,
+	const configUpdate: ConfigUpdate = {
+		unit: initResult.unit,
 		oldCosignerKeys: [
-			lucid.utils.paymentCredentialOf(address1.address).hash,
-			lucid.utils.paymentCredentialOf(address2).hash,
-			lucid.utils.paymentCredentialOf(address3).hash,
+			lucid.utils.paymentCredentialOf(account1.address).hash,
+			lucid.utils.paymentCredentialOf(account2.address).hash,
+			lucid.utils.paymentCredentialOf(account3.address).hash,
 		],
 		newConfig: {
 			threshold: 3,
 			cosignerKeys: [
-				lucid.utils.paymentCredentialOf(address11).hash,
-				lucid.utils.paymentCredentialOf(address12).hash,
-				lucid.utils.paymentCredentialOf(address13).hash,
+				lucid.utils.paymentCredentialOf(account11.address).hash,
+				lucid.utils.paymentCredentialOf(account12.address).hash,
+				lucid.utils.paymentCredentialOf(account13.address).hash,
 			],
 		},
 	};
 
-	const resultBuildUpdate = await buildUpdate(lucid, updateConfig);
+	const updateTx = await multisig_update.build(lucid, configUpdate);
 
-	lucid.selectWalletFromPrivateKey(privateKey1);
-	const witnesses1 = await signUpdate(lucid, resultBuildUpdate.txCbor);
+	lucid.selectWalletFromPrivateKey(account1.privateKey);
+	const witness1 = await multisig_update.signWitness(
+		lucid,
+		updateTx.toString()
+	);
 
-	lucid.selectWalletFromPrivateKey(privateKey2);
-	const witnesses2 = await signUpdate(lucid, resultBuildUpdate.txCbor);
+	lucid.selectWalletFromPrivateKey(account2.privateKey);
+	const witness2 = await multisig_update.signWitness(
+		lucid,
+		updateTx.toString()
+	);
 
-	lucid.selectWalletFromPrivateKey(privateKey3);
-	const witnesses3 = await signUpdate(lucid, resultBuildUpdate.txCbor);
+	lucid.selectWalletFromPrivateKey(account3.privateKey);
+	const witness3 = await multisig_update.signWitness(
+		lucid,
+		updateTx.toString()
+	);
 
-	lucid.selectWalletFromPrivateKey(privateKey1);
-
-	await assembleUpdate(lucid, resultBuildUpdate.txCbor, [
-		witnesses1,
-		witnesses2,
-		witnesses3,
+	await multisig_update.assemble(lucid, updateTx.toString(), [
+		witness1,
+		witness2,
+		witness3,
 	]);
 
 	emulator.awaitBlock(4);
@@ -133,4 +129,70 @@ export const runEmulator = async () => {
 		"guardianMultisig utxos: ",
 		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
 	);
+};
+
+export const runEmulator1 = async () => {
+	const ACCOUNT_0 = await generateAccount({ lovelace: BigInt(100000000) });
+	const ACCOUNT_1 = await generateAccount({ lovelace: BigInt(100000000) });
+
+	const emulator = new Emulator([ACCOUNT_0, ACCOUNT_1]);
+
+	const lucid = await Lucid.new(emulator);
+
+	const { paymentCredential } = lucid.utils.getAddressDetails(
+		ACCOUNT_0.address
+	);
+	const { paymentCredential: paymentCredential2 } =
+		lucid.utils.getAddressDetails(ACCOUNT_1.address);
+
+	console.log("emulator.now()", emulator.now());
+	const mintingPolicy = lucid.utils.nativeScriptFromJson({
+		type: "all",
+		scripts: [
+			{
+				type: "before",
+				slot: lucid.utils.unixTimeToSlot(emulator.now() + 60000),
+			},
+			{ type: "sig", keyHash: paymentCredential?.hash! },
+			{ type: "sig", keyHash: paymentCredential2?.hash! },
+		],
+	});
+
+	const policyId = lucid.utils.mintingPolicyToId(mintingPolicy);
+
+	async function mint() {
+		console.log("policyId", policyId);
+		console.log("mintingPolicy", mintingPolicy);
+		console.log("emulator", emulator.now());
+		lucid.selectWalletFromSeed(ACCOUNT_0.seedPhrase);
+		const tx = await lucid
+			.newTx()
+			.mintAssets({ [toUnit(policyId, fromText("Wow"))]: BigInt(123) })
+			.validTo(emulator.now() + 30000)
+			.attachMintingPolicy(mintingPolicy)
+			.complete();
+
+		// await tx.partialSign();
+		// lucid.selectWalletFromSeed(ACCOUNT_1.seedPhrase);
+		// await tx.partialSign();
+		// lucid.selectWalletFromSeed(ACCOUNT_0.seedPhrase);
+		// const signedTx = await tx.complete();
+		const w1 = await lucid
+			.selectWalletFromSeed(ACCOUNT_1.seedPhrase)
+			.fromTx(tx.toString())
+			.partialSign();
+		const w2 = await lucid
+			.selectWalletFromSeed(ACCOUNT_0.seedPhrase)
+			.fromTx(tx.toString())
+			.partialSign();
+		const tx1 = await lucid.fromTx(tx.toString()).assemble([w1, w2]).complete();
+		console.log(tx1.txSigned.to_json());
+		return tx1.submit();
+	}
+
+	await mint();
+
+	emulator.awaitBlock(4);
+
+	console.log("lucid.wallet.getUtxos", await lucid.wallet.getUtxos());
 };

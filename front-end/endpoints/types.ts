@@ -11,14 +11,18 @@ export type AnyDatumUTXO = {
 	utxo: UTxO;
 };
 
-
-export type ConfigMultisig = {
-	threshold : number
-	cosignerKeys : string[]
-}
+export type ConfigInit = {
+	threshold: number;
+	cosignerKeys: string[];
+};
 
 export type ConfigUpdate = {
 	unit: Unit;
 	oldCosignerKeys: string[];
-	newConfig : ConfigMultisig;
-}
+	newConfig: ConfigInit;
+};
+
+export type ConfigSign = {
+	unit: Unit;
+	consignerKeys: string[];
+};

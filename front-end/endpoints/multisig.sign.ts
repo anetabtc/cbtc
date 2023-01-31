@@ -1,12 +1,22 @@
-import { guardianMinter, guardianValidator } from "@/utils/validators";
+import {
+	guardianMinter,
+	guardianMultisig,
+	guardianValidator,
+} from "@/utils/validators";
 import { Constr, Lucid, Data, Address, fromText, toUnit } from "lucid-cardano";
-import { ValidDatumUTXO } from "./types";
+import { ConfigSign, ValidDatumUTXO } from "./types";
 
-export const buildTx = async (
+export const build = async (
 	lucid: Lucid,
 	datumUtxoList: ValidDatumUTXO[],
-	cosigners: Address[]
+	config: ConfigSign
 ) => {
+	//TODO:  organize guardianMultisig, guardianValidator, guardianMinter in objects so it's more readable
+	const multisigScriptUtxo = await lucid.utxoByUnit(config.unit);
+	const multisigDatumAsCbor = multisigScriptUtxo.datum || "";
+	const multisigScriptAddr = lucid.utils.validatorToAddress(guardianMultisig);
+	const RedeemerSign = Data.to(new Constr(1, []));
+
 	// pkh should match the list of [PubKeyHash] of the script
 	// [PubKeyHash] parameter at the Guardian Validator is hardcoded with my nami wallet PubKeyHash
 	// const pkh: string =
@@ -14,7 +24,7 @@ export const buildTx = async (
 	// 		.paymentCredential?.hash || "";
 	// console.log("My PubKeyHash: ", pkh);
 	// const pkh = "6b846eaacc07c6d27285af01eb9851e1afcbb7786f06833e06ef11a7"
-	const Redeemer = Data.to(new Constr(0, []));
+	const RedeemerGuardian = Data.to(new Constr(0, []));
 	const RedeemerPolicy = Data.to(new Constr(0, []));
 
 	const policyID = lucid.utils.mintingPolicyToId(guardianMinter);
@@ -37,7 +47,7 @@ export const buildTx = async (
 
 	console.log("utxoList: ", utxoList);
 
-	const tx1 = datumUtxoList
+	const outputs = datumUtxoList
 		.map((value) => {
 			console.log(
 				`Adding payToAddress: ${value.datum.address}, ${value.datum.amountDeposit}`
@@ -50,33 +60,40 @@ export const buildTx = async (
 			return prevTx.compose(tx);
 		});
 
-	const tx2 = cosigners
-		.map((cosigner) => {
-			const cosignerHash = lucid.utils.paymentCredentialOf(cosigner).hash;
-			return lucid.newTx().addSignerKey(cosignerHash);
+	const signers = config.consignerKeys
+		.map((cosignerKey) => {
+			return lucid.newTx().addSignerKey(cosignerKey);
 		})
 		.reduce((prevTx, tx) => {
 			return prevTx.compose(tx);
 		});
 
+	//TODO: build a new guardianValidator with the new pubkeyhashes
 	const tx = await lucid
 		.newTx()
-		.collectFrom(utxoList, Redeemer)
+		.collectFrom(utxoList, RedeemerGuardian)
 		.attachSpendingValidator(guardianValidator)
 		.attachMintingPolicy(guardianMinter)
 		.mintAssets(totalAssets, RedeemerPolicy)
-		.compose(tx1)
-		.compose(tx2)
+		.collectFrom([multisigScriptUtxo], RedeemerSign)
+		.attachSpendingValidator(guardianMultisig)
+		.payToContract(
+			multisigScriptAddr,
+			{ inline: multisigDatumAsCbor },
+			multisigScriptUtxo.assets
+		)
+		.compose(outputs)
+		.compose(signers)
 		.complete();
 
-	return tx.toString();
+	return tx;
 };
 
-export const partialSignTx = async (lucid: Lucid, txAsCbor: string) => {
+export const signWitness = async (lucid: Lucid, txAsCbor: string) => {
 	return await lucid.fromTx(txAsCbor).partialSign();
 };
 
-export const assembleTx = async (
+export const assemble = async (
 	lucid: Lucid,
 	txAsCbor: string,
 	witnesses: string[]
