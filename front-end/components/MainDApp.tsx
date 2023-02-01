@@ -2,8 +2,9 @@ import initLucid from "@/utils/lucid";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
-import { FullfillRequests } from "./FullfillRequests";
+import { Utils } from "./Utils";
 import { Request } from "./Request";
+import { Simulator } from "./Simulator";
 
 const MainDApp = () => {
 	const walletStore = useStoreState((state: any) => state.wallet);
@@ -33,7 +34,10 @@ const MainDApp = () => {
 	return (
 		<div className="flex-column justify-center items-center">
 			<Request lucid={lucid} />
-			<FullfillRequests lucid={lucid} />
+			<div className="divider"></div>
+			<Utils lucid={lucid} />
+			<div className="divider"></div>
+			<Simulator lucid={lucid} />
 		</div>
 	);
 };

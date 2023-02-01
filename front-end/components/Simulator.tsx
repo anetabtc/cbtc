@@ -1,14 +1,12 @@
-import { getAllDatums, getValidDatums } from "@/endpoints/utils";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import { assembleTx, buildTx, partialSignTx } from "@/endpoints/fullfill";
-import * as runSimulator from "@/endpoints/runSimulator"
+import * as runSimulator from "@/endpoints/test/runSimulator";
 
 interface Props {
 	lucid: Lucid;
 }
 
-export const FullfillRequests = ({ lucid }: Props) => {
+export const Simulator = ({ lucid }: Props) => {
 	const [error, setError] = useState("");
 
 	useEffect(() => {
@@ -21,66 +19,54 @@ export const FullfillRequests = ({ lucid }: Props) => {
 		};
 	}, [error]);
 
-	const handleClick = async () => {
-		const validDatums = await getValidDatums(lucid);
-		console.log("validDatums: ", validDatums);
-		if (!validDatums?.length) {
-			console.log("No valid datums at Guardian Script");
-			return null;
-		}
-		// const result = await fullfillRequests(lucid, validDatums);
-		// result ? setError(result) : setError("");
-		const cosigner = await lucid.wallet.address() 
-		const txAsCbor = await buildTx(lucid,validDatums,[cosigner])
-		const witness1 = await partialSignTx(lucid, txAsCbor)
-		const txHash = await assembleTx(lucid,txAsCbor,[witness1])
-		console.log(txHash)
-	};
-
 	const handleClick1 = async () => {
-		const result = await getAllDatums(lucid);
-		console.log(result);
+		await runSimulator.request(lucid);
 	};
 
 	const handleClick2 = async () => {
-		const result = await getValidDatums(lucid);
-		console.log(result);
+		await runSimulator.fullfil(lucid);
 	};
 
 	const handleClick3 = async () => {
-		await runSimulator.sign(lucid)
+		await runSimulator.update(lucid);
 	};
 
+	const handleClick4 = async () => {
+		await runSimulator.init(lucid);
+	};
 
 	return (
 		<div>
-			<button
-				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
-				onClick={() => handleClick()}
-			>
-				Fullfill Request
-			</button>
+			<h1 className="text-5xl font-bold text-center">Simulator</h1>
 
 			<button
 				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
 				onClick={() => handleClick1()}
 			>
-				Get All Datums
+				Request
 			</button>
-
+			
 			<button
 				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
 				onClick={() => handleClick2()}
 			>
-				Get Valid Datums
+				FullFill
 			</button>
 
 			<button
 				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
 				onClick={() => handleClick3()}
 			>
-				Emulator
+				Update
 			</button>
+
+			<button
+				className="btn btn-outline btn-accent btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+				onClick={() => handleClick4()}
+			>
+				Init
+			</button>
+
 
 			{error && (
 				<div className="alert alert-error shadow-lg">

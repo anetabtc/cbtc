@@ -4,6 +4,8 @@ import {
 	Data,
 	Address,
 	Credential,
+	generatePrivateKey,
+	generateSeedPhrase,
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO } from "./types";
 
@@ -18,7 +20,7 @@ export const getAllDatums = async (lucid: Lucid): Promise<AnyDatumUTXO[]> => {
 
 	const datumUtxoList = scriptUtxos.map((utxo) => {
 		const datumCbor = utxo.datum || "";
-		const datumAsData = Data.from(datumCbor);
+		const datumAsData: any = Data.from(datumCbor);
 		// Try parsing Data -> Address
 		// Address: must have StakingHash
 		// Valid Address type:  (PubKeyCredential (<PubKeyHash>)) (Just (StakingHash (PubKeyCredential (<PubKeyHash>))))
@@ -60,6 +62,9 @@ export const getAllDatums = async (lucid: Lucid): Promise<AnyDatumUTXO[]> => {
 	return datumUtxoList;
 };
 
+
+// Only Address with Staking Credential is supported
+//TODO: Maybe consider using TypeBox or Zod for safety data validation
 export const getValidDatums = async (
 	lucid: Lucid
 ): Promise<ValidDatumUTXO[]> => {
@@ -73,10 +78,8 @@ export const getValidDatums = async (
 
 	const datumUtxoList = scriptUtxos.reduce((acc: ValidDatumUTXO[], utxo) => {
 		const datumCbor = utxo.datum || "";
-		const datumAsData = Data.from(datumCbor);
-		// Try parsing Data -> Address
-		// Address: must have StakingHash
-		// Valid Address type:  (PubKeyCredential (<PubKeyHash>)) (Just (StakingHash (PubKeyCredential (<PubKeyHash>))))
+		const datumAsData: any = Data.from(datumCbor);
+
 		const paymentCredentialHash: string =
 			datumAsData.fields[1]?.fields[0]?.fields[0];
 		const stakeCredentialHash: string =
@@ -108,4 +111,30 @@ export const getValidDatums = async (
 		return acc;
 	}, []);
 	return datumUtxoList;
+};
+
+// Only use this if you want to create new hardcoded accounts in prepod, then these accounts must be funded from your wallet
+export const generateAddressPrivateKey = async (lucid: Lucid) => {
+	const privKey = generatePrivateKey();
+	const address = await lucid
+		.selectWalletFromPrivateKey(privKey)
+		.wallet.address();
+
+	return {
+		privateKey: privKey,
+		address: address,
+	};
+};
+
+// Only use this if you want to create new hardcoded accounts in prepod, then these accounts must be funded from your wallet
+export const generateAddressSeedPhrase = async (lucid: Lucid) => {
+	const seedPhrase = generateSeedPhrase();
+	const address = await lucid
+		.selectWalletFromSeed(seedPhrase)
+		.wallet.address();
+
+	return {
+		seedPhrase: seedPhrase,
+		address: address,
+	};
 };

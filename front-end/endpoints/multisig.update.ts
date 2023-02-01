@@ -4,11 +4,6 @@ import { ConfigUpdate } from "./types";
 
 export const build = async (lucid: Lucid, config: ConfigUpdate) => {
 	const scriptUtxo = await lucid.utxoByUnit(config.unit);
-	const datumAsCbor = scriptUtxo.datum || "";
-	const datumAsData = Data.from(datumAsCbor);
-	console.log("old threshold: ", datumAsData.fields[0]);
-	console.log("old cosigners: ", datumAsData.fields[1]);
-	console.log("new config", config.newConfig);
 	console.log(scriptUtxo.assets);
 
 	const guardianMultisigAddr = lucid.utils.validatorToAddress(guardianMultisig);
@@ -19,7 +14,7 @@ export const build = async (lucid: Lucid, config: ConfigUpdate) => {
 			config.newConfig.cosignerKeys,
 		])
 	);
-	const RedeemerUpdate = Data.to(new Constr(0, []));
+	const RedeemerUpdate = Data.to(new Constr(0, [])); // Update
 
 	const signers = config.oldCosignerKeys
 		.map((cosignerKey) => {

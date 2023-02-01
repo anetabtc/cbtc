@@ -1,18 +1,19 @@
 import { guardianValidator } from "@/utils/validators";
 import { Constr, Lucid, Data, Address, AddressDetails } from "lucid-cardano";
 
-export const submitRequest = async (
+export const submit = async (
 	lucid: Lucid,
 	address: string,
 	amount: bigint
 ) => {
 	try {
-		console.log("submiting request");
+		console.log("Submiting request");
 		const walletAddrDetails: AddressDetails =
 			lucid.utils.getAddressDetails(address);
 		const guardianValidatorAddr: Address =
 			lucid.utils.validatorToAddress(guardianValidator);
 		console.log("walletAddr", walletAddrDetails);
+		// Only Address with Staking Credential is supported
 		const addressAsData = new Constr(0, [
 			new Constr(0, [walletAddrDetails.paymentCredential?.hash || ""]),
 			new Constr(0, [
@@ -35,12 +36,9 @@ export const submitRequest = async (
 		const signedTx = await tx.sign().complete();
 
 		const txHash = signedTx.submit();
-		console.log("Transaction submitted:", txHash);
-
-		return null;
+		return txHash;
 	} catch (error) {
-		console.log(error);
-		if (error instanceof Error) return error.message;
-		return `unknown error in submitRequest: ${JSON.stringify(error)}`;
+		if (error instanceof Error) return error;
+		return Error(`unknown error : ${JSON.stringify(error)}`);
 	}
 };

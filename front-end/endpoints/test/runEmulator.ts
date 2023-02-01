@@ -8,11 +8,11 @@ import {
 	Lucid,
 	toUnit,
 } from "lucid-cardano";
-import * as multisig_update from "./multisig.update";
-import * as multisig_init from "./multisig.init";
-import { ConfigInit, ConfigUpdate } from "./types";
+import * as multisig_update from "../multisig.update";
+import * as multisig_init from "../multisig.init";
+import { ConfigInit, ConfigUpdate } from "../types";
 
-const buildAddress = async (assets: Assets) => {
+const generateAccountPrivateKey = async (assets: Assets) => {
 	const privKey = generatePrivateKey();
 	const address = await (await Lucid.new(undefined, "Custom"))
 		.selectWalletFromPrivateKey(privKey)
@@ -25,7 +25,7 @@ const buildAddress = async (assets: Assets) => {
 	};
 };
 
-async function generateAccount(assets: Assets) {
+const generateAccountSeedPhrase = async (assets: Assets) => {
 	const seedPhrase = generateSeedPhrase();
 	return {
 		seedPhrase,
@@ -34,42 +34,60 @@ async function generateAccount(assets: Assets) {
 			.wallet.address(),
 		assets,
 	};
-}
+};
 
 export const runEmulator = async () => {
-	const account1 = await buildAddress({ lovelace: BigInt(7000000000) });
-	const account2 = await buildAddress({ lovelace: BigInt(100000000) });
-	const account3 = await buildAddress({ lovelace: BigInt(100000000) });
-	const account11 = await buildAddress({ lovelace: BigInt(100000000) });
-	const account12 = await buildAddress({ lovelace: BigInt(100000000) });
-	const account13 = await buildAddress({ lovelace: BigInt(100000000) });
+	const signers = {
+		account1: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+		account2: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+		account3: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+		account11: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+		account12: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+		account13: await generateAccountPrivateKey({
+			lovelace: BigInt(1000000000),
+		}),
+	};
+	const user = {
+		account1: await generateAccountSeedPhrase({ lovelace: BigInt(1000000000) }),
+	};
 
-	// TODO: start using buildAddress function
 	const emulator = new Emulator([
-		account1,
-		account2,
-		account3,
-		account11,
-		account12,
-		account13,
+		signers.account1,
+		signers.account2,
+		signers.account3,
+		signers.account11,
+		signers.account12,
+		signers.account13,
+		user.account1,
 	]);
 
 	console.log("emulator", emulator.ledger);
-	console.log("address1.address", account1.address);
+	console.log("address1.address", signers.account1.address);
 
 	const lucid = await Lucid.new(emulator);
 
-	lucid.selectWalletFromPrivateKey(account1.privateKey);
+	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 
+	// Set multisig cosigners
 	const initConfig: ConfigInit = {
 		threshold: 1,
 		cosignerKeys: [
-			lucid.utils.paymentCredentialOf(account1.address).hash,
-			lucid.utils.paymentCredentialOf(account2.address).hash,
-			lucid.utils.paymentCredentialOf(account3.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account2.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 	};
-
+	// initialize Multisig NFT with Datum
 	const initResult = await multisig_init.init(lucid, initConfig);
 
 	emulator.awaitBlock(4);
@@ -80,43 +98,46 @@ export const runEmulator = async () => {
 		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
 	);
 
+	// Set old and new cosigners
 	const configUpdate: ConfigUpdate = {
 		unit: initResult.unit,
 		oldCosignerKeys: [
-			lucid.utils.paymentCredentialOf(account1.address).hash,
-			lucid.utils.paymentCredentialOf(account2.address).hash,
-			lucid.utils.paymentCredentialOf(account3.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account2.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 		newConfig: {
 			threshold: 3,
 			cosignerKeys: [
-				lucid.utils.paymentCredentialOf(account11.address).hash,
-				lucid.utils.paymentCredentialOf(account12.address).hash,
-				lucid.utils.paymentCredentialOf(account13.address).hash,
+				lucid.utils.paymentCredentialOf(signers.account11.address).hash,
+				lucid.utils.paymentCredentialOf(signers.account12.address).hash,
+				lucid.utils.paymentCredentialOf(signers.account13.address).hash,
 			],
 		},
 	};
 
+	// Build update transaction
 	const updateTx = await multisig_update.build(lucid, configUpdate);
 
-	lucid.selectWalletFromPrivateKey(account1.privateKey);
+	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 	const witness1 = await multisig_update.signWitness(
 		lucid,
 		updateTx.toString()
 	);
 
-	lucid.selectWalletFromPrivateKey(account2.privateKey);
+	lucid.selectWalletFromPrivateKey(signers.account2.privateKey);
 	const witness2 = await multisig_update.signWitness(
 		lucid,
 		updateTx.toString()
 	);
 
-	lucid.selectWalletFromPrivateKey(account3.privateKey);
+	lucid.selectWalletFromPrivateKey(signers.account3.privateKey);
 	const witness3 = await multisig_update.signWitness(
 		lucid,
 		updateTx.toString()
 	);
 
+	//Assemble old cosigner signatures
 	await multisig_update.assemble(lucid, updateTx.toString(), [
 		witness1,
 		witness2,
@@ -125,15 +146,21 @@ export const runEmulator = async () => {
 
 	emulator.awaitBlock(4);
 
+	// Print new Datum
 	console.log(
 		"guardianMultisig utxos: ",
 		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
 	);
 };
 
+// the below is for testing only
 export const runEmulator1 = async () => {
-	const ACCOUNT_0 = await generateAccount({ lovelace: BigInt(100000000) });
-	const ACCOUNT_1 = await generateAccount({ lovelace: BigInt(100000000) });
+	const ACCOUNT_0 = await generateAccountSeedPhrase({
+		lovelace: BigInt(100000000),
+	});
+	const ACCOUNT_1 = await generateAccountSeedPhrase({
+		lovelace: BigInt(100000000),
+	});
 
 	const emulator = new Emulator([ACCOUNT_0, ACCOUNT_1]);
 

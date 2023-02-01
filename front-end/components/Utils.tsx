@@ -1,13 +1,12 @@
-import * as client_request from "@/endpoints/client.request";
+import * as utils from "@/endpoints/utils";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import { isNativeError } from "util/types";
 
 interface Props {
 	lucid: Lucid;
 }
 
-export const Request = ({ lucid }: Props) => {
+export const Utils = ({ lucid }: Props) => {
 	const [error, setError] = useState("");
 
 	useEffect(() => {
@@ -20,27 +19,46 @@ export const Request = ({ lucid }: Props) => {
 		};
 	}, [error]);
 
-	const handleClick = async () => {
-		const myAddress = await lucid.wallet.address();
-		const hardcodedAmount = BigInt(10);
-		const result = await client_request.submit(lucid, myAddress, hardcodedAmount);
-		if (result instanceof Error) {
-			setError(result.message);
-		} else {
-			console.log(result);
-		}
+	const handleClick1 = async () => {
+		const result = await utils.getAllDatums(lucid);
+		console.log(result);
+	};
+
+	const handleClick2 = async () => {
+		const result = await utils.getValidDatums(lucid);
+		console.log(result);
+	};
+
+	const handleClick3 = async () => {
+		const result = await utils.generateAddressSeedPhrase(lucid);
+		console.log(result);
 	};
 
 	return (
 		<div>
-			<h1 className="text-5xl font-bold text-center">Client</h1>
+			<h1 className="text-5xl font-bold text-center">Utils</h1>
 
 			<button
 				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
-				onClick={() => handleClick()}
+				onClick={() => handleClick1()}
 			>
-				Submit Request
+				Get All Datums
 			</button>
+
+			<button
+				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+				onClick={() => handleClick2()}
+			>
+				Get Valid Datums
+			</button>
+
+			<button
+				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+				onClick={() => handleClick3()}
+			>
+				Generate Address
+			</button>
+
 			{error && (
 				<div className="alert alert-error shadow-lg">
 					<div>

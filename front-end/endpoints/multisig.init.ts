@@ -13,8 +13,7 @@ export const init = async (lucid: Lucid, config: ConfigInit) => {
 	// using Always succeeds for now
 	const guardianMultisigAddr = lucid.utils.validatorToAddress(guardianMultisig);
 
-	// TODO: we need a new oneshot policy
-	// using a temp minting policy which force to spend the utxo of the parameter and use "yep" as tokenname
+	// TODO: we need a new oneshot policy, using a temp native minting policy 
 	const { paymentCredential } = lucid.utils.getAddressDetails(
 		await lucid.wallet.address()
 	);
@@ -41,15 +40,24 @@ export const init = async (lucid: Lucid, config: ConfigInit) => {
 
 	const RedeemerPolicy = Data.to(new Constr(0, []));
 
+	//TODO: disable when using one shot policy
 	const tx = await lucid
 		.newTx()
-		// .collectFrom([walletUtxos[0]])
 		.attachMintingPolicy(policy)
-		// .mintAssets(asset, RedeemerPolicy)
 		.validTo(Date.now() + 100000)
 		.mintAssets(asset)
 		.payToContract(guardianMultisigAddr, { inline: Datum }, asset)
 		.complete();
+
+	//TODO: enable when using one shot policy
+	// const tx = await lucid
+	// 	.newTx()
+	// 	.collectFrom([walletUtxos[0]])
+	// 	.attachMintingPolicy(policy)
+	// 	.mintAssets(asset, RedeemerPolicy)
+	// 	.mintAssets(asset)
+	// 	.payToContract(guardianMultisigAddr, { inline: Datum }, asset)
+	// 	.complete();
 
 	const signedTx = await tx.sign().complete();
 	const txHash = await signedTx.submit();
