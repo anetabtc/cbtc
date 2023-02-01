@@ -36,7 +36,7 @@ const generateAccountSeedPhrase = async (assets: Assets) => {
 	};
 };
 
-export const runEmulator = async () => {
+export const update = async () => {
 	const signers = {
 		account1: await generateAccountPrivateKey({
 			lovelace: BigInt(1000000000),

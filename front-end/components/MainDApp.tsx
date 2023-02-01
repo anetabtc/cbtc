@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Utils } from "./Utils";
 import { Request } from "./Request";
 import { Simulator } from "./Simulator";
+import { Emulator } from "./Emulator";
 
 const MainDApp = () => {
 	const walletStore = useStoreState((state: any) => state.wallet);
@@ -38,6 +39,8 @@ const MainDApp = () => {
 			<Utils lucid={lucid} />
 			<div className="divider"></div>
 			<Simulator lucid={lucid} />
+			<div className="divider"></div>
+			<Emulator lucid={lucid} />
 		</div>
 	);
 };

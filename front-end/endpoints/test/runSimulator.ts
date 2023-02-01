@@ -164,7 +164,7 @@ export const fullfil = async (lucid: Lucid) => {
 
 	// Build transaction with Valid Datums and UTXOs
 	// Guardian Minter, Guardian Script and Guardian Multisig are inlcuded
-	const updateTx = await multisig_fullfill.build(
+	const fulfillTx = await multisig_fullfill.build(
 		lucid,
 		validDatumUtxoList,
 		configSign
@@ -173,24 +173,24 @@ export const fullfil = async (lucid: Lucid) => {
 	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 	const witness1 = await multisig_fullfill.signWitness(
 		lucid,
-		updateTx.toString()
+		fulfillTx.toString()
 	);
 
 	lucid.selectWalletFromPrivateKey(signers.account2.privateKey);
 	const witness2 = await multisig_fullfill.signWitness(
 		lucid,
-		updateTx.toString()
+		fulfillTx.toString()
 	);
 
 	lucid.selectWalletFromPrivateKey(signers.account3.privateKey);
 	const witness3 = await multisig_fullfill.signWitness(
 		lucid,
-		updateTx.toString()
+		fulfillTx.toString()
 	);
 
 	const assembleTx = await multisig_fullfill.assemble(
 		lucid,
-		updateTx.toString(),
+		fulfillTx.toString(),
 		[witness1, witness2, witness3]
 	);
 
@@ -200,7 +200,7 @@ export const fullfil = async (lucid: Lucid) => {
 export const request = async (lucid: Lucid) => {
 	lucid.selectWalletFromSeed(user.account1.seedPhrase);
 
-	// This Address doesn't have the staking credential
+	// This Address has Staking Credential
 	const myAddress = await lucid.wallet.address();
 	const hardcodedAmount = BigInt(10);
 	console.log(`Requesting ${hardcodedAmount} BTC to ${myAddress}`);
