@@ -1,7 +1,6 @@
-import * as client_request from "@/endpoints/client.request";
+import * as user_request from "@/endpoints/user.request";
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import { isNativeError } from "util/types";
 
 interface Props {
 	lucid: Lucid;
@@ -23,7 +22,7 @@ export const Request = ({ lucid }: Props) => {
 	const handleClick = async () => {
 		const myAddress = await lucid.wallet.address();
 		const hardcodedAmount = BigInt(10);
-		const result = await client_request.submit(lucid, myAddress, hardcodedAmount);
+		const result = await user_request.submit(lucid, myAddress, hardcodedAmount);
 		if (result instanceof Error) {
 			setError(result.message);
 		} else {

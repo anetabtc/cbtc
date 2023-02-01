@@ -4,7 +4,7 @@ import * as multisig_init from "../multisig.init";
 import * as multisig_fullfill from "../multisig.fullfill";
 import { ConfigInit, ConfigSign, ConfigUpdate } from "../types";
 import * as utils from "../utils";
-import * as client_request from "../client.request";
+import * as user_request from "../user.request";
 
 // Accounts generated with utils.generateAddressPrivateKey()
 // These addresses don't have StakingCredential
@@ -204,6 +204,6 @@ export const request = async (lucid: Lucid) => {
 	const myAddress = await lucid.wallet.address();
 	const hardcodedAmount = BigInt(10);
 	console.log(`Requesting ${hardcodedAmount} BTC to ${myAddress}`);
-	const result = await client_request.submit(lucid, myAddress, hardcodedAmount);
+	const result = await user_request.submit(lucid, myAddress, hardcodedAmount);
 	console.log(result);
 };
