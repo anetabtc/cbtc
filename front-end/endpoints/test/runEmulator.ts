@@ -1,4 +1,4 @@
-import { guardianMultisig } from "@/utils/validators";
+import { multisigValidator } from "@/utils/validators";
 import {
 	Assets,
 	Emulator,
@@ -72,7 +72,7 @@ export const update = async () => {
 	]);
 
 	console.log("emulator", emulator.ledger);
-	console.log("address1.address", signers.account1.address);
+
 
 	const lucid = await Lucid.new(emulator);
 
@@ -83,19 +83,20 @@ export const update = async () => {
 		threshold: 1,
 		cosignerKeys: [
 			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
-			lucid.utils.paymentCredentialOf(signers.account2.address).hash,
-			lucid.utils.paymentCredentialOf(signers.account3.address).hash,
+			// lucid.utils.paymentCredentialOf(signers.account2.address).hash,
+			// lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 	};
+	console.log(initConfig)
 	// initialize Multisig NFT with Datum
 	const initResult = await multisig_init.init(lucid, initConfig);
 
 	emulator.awaitBlock(4);
 
-	console.log("wallet utxos: ", await lucid.wallet.getUtxos());
+	console.log("utxos at Wallet: ", await lucid.wallet.getUtxos());
 	console.log(
-		"guardianMultisig utxos: ",
-		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
+		"utxos at multisigValidator: ",
+		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
 	);
 
 	// Set old and new cosigners
@@ -103,11 +104,9 @@ export const update = async () => {
 		unit: initResult.unit,
 		oldCosignerKeys: [
 			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
-			lucid.utils.paymentCredentialOf(signers.account2.address).hash,
-			lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 		newConfig: {
-			threshold: 3,
+			threshold: 2,
 			cosignerKeys: [
 				lucid.utils.paymentCredentialOf(signers.account11.address).hash,
 				lucid.utils.paymentCredentialOf(signers.account12.address).hash,
@@ -125,31 +124,16 @@ export const update = async () => {
 		updateTx.toString()
 	);
 
-	lucid.selectWalletFromPrivateKey(signers.account2.privateKey);
-	const witness2 = await multisig_update.signWitness(
-		lucid,
-		updateTx.toString()
-	);
-
-	lucid.selectWalletFromPrivateKey(signers.account3.privateKey);
-	const witness3 = await multisig_update.signWitness(
-		lucid,
-		updateTx.toString()
-	);
-
 	//Assemble old cosigner signatures
 	await multisig_update.assemble(lucid, updateTx.toString(), [
 		witness1,
-		witness2,
-		witness3,
 	]);
 
 	emulator.awaitBlock(4);
 
-	// Print new Datum
 	console.log(
 		"guardianMultisig utxos: ",
-		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianMultisig))
+		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
 	);
 };
 

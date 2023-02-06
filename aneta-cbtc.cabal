@@ -141,8 +141,11 @@ common test-dependencies
 library
   import:          lang, dependencies
   exposed-modules:
+    Collection.Utils
     GuardianValidator
     MintCBTC
+    MultiSigMintPolicy
+    MultiSigValidator
     Utils
 
   hs-source-dirs:  src
