@@ -34,6 +34,14 @@ export const Utils = ({ lucid }: Props) => {
 		console.log(result);
 	};
 
+	const handleClick4 = async () => {
+		const result1 = await lucid.utils.getAddressDetails("addr_test1vzdekzrwlc0qnrnqck58edn3wyevzd3tasl0c5sx6gzsvyqxt6pfs");
+		const result2 = await lucid.utils.getAddressDetails("addr_test1vzd0jhkjnzj9jju7m93n377v8zhpy23d8e5esxn9lvravwgauckcr");
+		const result3 = await lucid.utils.getAddressDetails("addr_test1vzy73swp6dq5jepsq3hn0j7xafdfqqj8lgga73qe6g34vcq4f7hq5");
+
+		console.log(result1, result2,result3);
+	};
+
 	return (
 		<div>
 			<h1 className="text-5xl font-bold text-center">Utils</h1>
@@ -57,6 +65,13 @@ export const Utils = ({ lucid }: Props) => {
 				onClick={() => handleClick3()}
 			>
 				Generate Address
+			</button>
+
+			<button
+				className="btn btn-outline btn-primary btn-xs sm:btn-sm md:btn-md lg:btn-lg m-5"
+				onClick={() => handleClick4()}
+			>
+				Get Address Details
 			</button>
 
 			{error && (

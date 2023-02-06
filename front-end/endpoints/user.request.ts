@@ -3,13 +3,14 @@ import { Constr, Lucid, Data, Address, AddressDetails } from "lucid-cardano";
 
 export const submit = async (
 	lucid: Lucid,
-	address: string,
-	amount: bigint
+	bridgeAmount: number,
+	cardanoAddr: string,
+	otherChainAddr: string,
 ) => {
 	try {
 		console.log("Submiting request");
 		const walletAddrDetails: AddressDetails =
-			lucid.utils.getAddressDetails(address);
+			lucid.utils.getAddressDetails(cardanoAddr);
 		const guardianValidatorAddr: Address =
 			lucid.utils.validatorToAddress(guardianValidator);
 		console.log("walletAddr", walletAddrDetails);
@@ -22,8 +23,7 @@ export const submit = async (
 				]),
 			]),
 		]);
-		const amountDeposit = amount;
-		const Datum = Data.to(new Constr(0, [amountDeposit, addressAsData]));
+		const Datum = Data.to(new Constr(0, [BigInt(bridgeAmount), ,addressAsData, otherChainAddr]));
 		const tx = await lucid
 			.newTx()
 			.payToContract(

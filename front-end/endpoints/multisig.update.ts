@@ -1,19 +1,33 @@
-import { guardianMultisig } from "@/utils/validators";
+import { multisigValidator } from "@/utils/validators";
 import { Constr, Data, Lucid } from "lucid-cardano";
 import { ConfigUpdate } from "./types";
 
 export const build = async (lucid: Lucid, config: ConfigUpdate) => {
 	const scriptUtxo = await lucid.utxoByUnit(config.unit);
-	console.log(scriptUtxo.assets);
+	console.log(scriptUtxo);
 
-	const guardianMultisigAddr = lucid.utils.validatorToAddress(guardianMultisig);
+	const multisigValidatorAddr = lucid.utils.validatorToAddress(multisigValidator);
 
-	const Datum = Data.to(
-		new Constr(0, [
-			BigInt(config.newConfig.threshold),
-			config.newConfig.cosignerKeys,
-		])
-	);
+	// const Datum = Data.to(
+	// 	new Constr(0, [
+	// 		config.newConfig.cosignerKeys,
+	// 		BigInt(config.newConfig.threshold),
+	// 	])
+	// )
+
+	const MyDatum = Data.Object({
+		keys: Data.Array(Data.String),
+		requiredCount: Data.BigInt
+	})
+	type MyDatum = Data.Static<typeof MyDatum>
+
+	const datum : MyDatum ={
+		keys: config.newConfig.cosignerKeys,
+		requiredCount: BigInt(config.newConfig.threshold),
+	}
+
+	const Datum = Data.to<MyDatum>(datum,MyDatum)
+
 	const RedeemerUpdate = Data.to(new Constr(0, [])); // Update
 
 	const signers = config.oldCosignerKeys
@@ -27,8 +41,8 @@ export const build = async (lucid: Lucid, config: ConfigUpdate) => {
 	const tx = await lucid
 		.newTx()
 		.collectFrom([scriptUtxo], RedeemerUpdate)
-		.attachSpendingValidator(guardianMultisig)
-		.payToContract(guardianMultisigAddr, { inline: Datum }, scriptUtxo.assets)
+		.attachSpendingValidator(multisigValidator)
+		.payToContract(multisigValidatorAddr, { inline: Datum }, scriptUtxo.assets)
 		.compose(signers)
 		.complete();
 

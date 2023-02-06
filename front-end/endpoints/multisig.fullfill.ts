@@ -16,11 +16,11 @@ export const build = async (
 			validator: guardianMultisig, //TODO: New Script is needed here
 			utxo: await lucid.utxoByUnit(config.unit),
 			address: lucid.utils.validatorToAddress(guardianMultisig),
-			redeemer: Data.to(new Constr(1, [])), // Sign
+			redeemer: Data.to(new Constr(1, [])), // PSign
 		},
 		guardian: {
 			validator: guardianValidator, //TODO: New Script is needed here
-			redeemer: Data.to(new Constr(0, [])), // Unit for now
+			redeemer: Data.to(new Constr(0, [])), // PApproveWrap
 			utxos: guardianDatumUtxoList.map((value) => {
 				return value.utxo;
 			}),
@@ -32,7 +32,7 @@ export const build = async (
 				lucid.utils.mintingPolicyToId(guardianMinter),
 				fromText("cBTC")
 			),
-			redeemer: Data.to(new Constr(0, [])), // Unit for now
+			redeemer: Data.to(new Constr(0, [])), // PMintBTC
 		},
 	};
 
