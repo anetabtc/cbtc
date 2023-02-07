@@ -30,7 +30,6 @@ export const init = async (lucid: Lucid, config: ConfigInit) => {
 
 	const unit = toUnit(multisigPolicyId, fromText("MultiSigCert"));
 	const asset = {[unit]: BigInt(1)};
-	console.log(multisigPolicyId);
 
 	const Datum = Data.to(
 		new Constr(0, [config.cosignerKeys, BigInt(config.threshold)])

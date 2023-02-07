@@ -1,16 +1,24 @@
-import { multisigValidator } from "@/utils/validators";
+import { guardianValidator, multisigValidator } from "@/utils/validators";
 import {
+	applyParamsToScript,
 	Assets,
+	Constr,
 	Emulator,
 	fromText,
 	generatePrivateKey,
 	generateSeedPhrase,
 	Lucid,
+	SpendingValidator,
 	toUnit,
 } from "lucid-cardano";
 import * as multisig_update from "../multisig.update";
 import * as multisig_init from "../multisig.init";
-import { ConfigInit, ConfigUpdate } from "../types";
+import * as multisig_fullfill from "../multisig.fullfill";
+import * as user_request from "../user.request";
+import * as utils from "../utils";
+
+
+import { ConfigInit, ConfigSign, ConfigUpdate } from "../types";
 
 const generateAccountPrivateKey = async (assets: Assets) => {
 	const privKey = generatePrivateKey();
@@ -37,6 +45,7 @@ const generateAccountSeedPhrase = async (assets: Assets) => {
 };
 
 export const update = async () => {
+	console.log("[State]: initializing Emulator")
 	const signers = {
 		account1: await generateAccountPrivateKey({
 			lovelace: BigInt(1000000000),
@@ -71,14 +80,14 @@ export const update = async () => {
 		user.account1,
 	]);
 
-	console.log("emulator", emulator.ledger);
+	console.log("[INFO] Emulator Ledger:", emulator.ledger);
 
 
 	const lucid = await Lucid.new(emulator);
 
-	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
+	console.log("[State] Initializing Multisig")
 
-	// Set multisig cosigners
+	// Set initial signers, at the moment the MultiSigMintPolicy takes one signer to initialize the datum
 	const initConfig: ConfigInit = {
 		threshold: 1,
 		cosignerKeys: [
@@ -87,21 +96,24 @@ export const update = async () => {
 			// lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 	};
-	console.log(initConfig)
-	// initialize Multisig NFT with Datum
+	console.log("[INFO] Initial Configuration", initConfig)
+	
+	// initialize and submit MultiSigCert NFT with Datum
+	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 	const initResult = await multisig_init.init(lucid, initConfig);
-
+	const multiSigCertPolicyId = lucid.utils.mintingPolicyToId(initResult.multisigPolicy)
+	const multiSigCertUnit = initResult.unit
 	emulator.awaitBlock(4);
-
-	console.log("utxos at Wallet: ", await lucid.wallet.getUtxos());
+	console.log("[INFO] Endpoint result (multisig_init.init): ", initResult)
 	console.log(
-		"utxos at multisigValidator: ",
+		"[INFO] New UTXO at multisigValidator: ",
 		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
 	);
 
-	// Set old and new cosigners
+	console.log("[State] Updating Multisig")
+	// Set MultiSigCert NFT , old and new signers
 	const configUpdate: ConfigUpdate = {
-		unit: initResult.unit,
+		unit: multiSigCertUnit,
 		oldCosignerKeys: [
 			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
 		],
@@ -114,17 +126,19 @@ export const update = async () => {
 			],
 		},
 	};
+	console.log("[INFO] Setting Configuration Update", configUpdate)
 
 	// Build update transaction
 	const updateTx = await multisig_update.build(lucid, configUpdate);
 
+	// Select original signer to witness the tx
 	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 	const witness1 = await multisig_update.signWitness(
 		lucid,
 		updateTx.toString()
 	);
 
-	//Assemble old cosigner signatures
+	//Assemble and submit old signer tx
 	await multisig_update.assemble(lucid, updateTx.toString(), [
 		witness1,
 	]);
@@ -132,9 +146,101 @@ export const update = async () => {
 	emulator.awaitBlock(4);
 
 	console.log(
-		"guardianMultisig utxos: ",
+		"[INFO] New UTXO at multisigValidator: ",
 		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
 	);
+
+	console.log("[State] Requesting cBTC")
+
+	const guardianValidatorApplied: SpendingValidator = {
+		type: "PlutusV2",
+		script: applyParamsToScript(guardianValidator.script, [
+			lucid.utils.validatorToScriptHash(multisigValidator), multiSigCertPolicyId,
+		]),
+	};
+
+	lucid.selectWalletFromSeed(user.account1.seedPhrase);
+
+	// This Address has Staking Credential
+	const myAddress = await lucid.wallet.address();
+	const hardcodedAmount = 10;
+	console.log(`Requesting ${hardcodedAmount} cBTC to ${myAddress}`);
+	const result = await user_request.submit(
+		lucid,
+		hardcodedAmount,
+		myAddress,
+		"",
+		guardianValidatorApplied,
+	);
+
+	emulator.awaitBlock(4);
+
+	console.log("[INFO] Endpoint result (user_request.submit): ", result)
+	console.log(
+		"[INFO] New UTXO at guardianValidator: ",
+		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianValidatorApplied))
+	);
+
+	console.log("[State] Getting Valid Datum and UTXO")
+
+	const validDatumUtxoList = await utils.getValidDatums(lucid, guardianValidatorApplied);
+	if (!validDatumUtxoList?.length) {
+		console.log("[INFO] No valid datums at Guardian Script");
+		return null;
+	}
+	console.log("[INFO] validDatumUtxoList: ", validDatumUtxoList);
+
+	const configSign: ConfigSign = {
+		unit: multiSigCertUnit,
+		guardianValApplied : guardianValidatorApplied,
+		consignerKeys: [
+			lucid.utils.paymentCredentialOf(signers.account11.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account12.address).hash,
+			lucid.utils.paymentCredentialOf(signers.account13.address).hash,
+		],
+	};
+
+	lucid.selectWalletFromPrivateKey(signers.account11.privateKey);
+
+	const fulfillTx = await multisig_fullfill.build(
+		lucid,
+		validDatumUtxoList,
+		configSign
+	);
+
+	lucid.selectWalletFromPrivateKey(signers.account11.privateKey);
+	const witness11 = await multisig_fullfill.signWitness(
+		lucid,
+		fulfillTx.toString()
+	);
+
+	lucid.selectWalletFromPrivateKey(signers.account12.privateKey);
+	const witness12 = await multisig_fullfill.signWitness(
+		lucid,
+		fulfillTx.toString()
+	);
+
+	lucid.selectWalletFromPrivateKey(signers.account13.privateKey);
+	const witness13 = await multisig_fullfill.signWitness(
+		lucid,
+		fulfillTx.toString()
+	);
+
+	const assembleTx = await multisig_fullfill.assemble(
+		lucid,
+		fulfillTx.toString(),
+		[witness11, witness12, witness13]
+	);
+	
+	emulator.awaitBlock(4);
+
+
+	lucid.selectWalletFromSeed(user.account1.seedPhrase);
+
+	console.log(
+		"[INFO] UTXOs at user wallet: ",
+		await lucid.wallet.getUtxos())
+	
 };
 
 // the below is for testing only

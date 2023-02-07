@@ -6,14 +6,15 @@ import {
 	Credential,
 	generatePrivateKey,
 	generateSeedPhrase,
+	Script,
 } from "lucid-cardano";
 import { AnyDatumUTXO, ValidDatumUTXO } from "./types";
 
-export const getAllDatums = async (lucid: Lucid): Promise<AnyDatumUTXO[]> => {
+export const getAllDatums = async (lucid: Lucid, guardianValApplied : Script): Promise<AnyDatumUTXO[]> => {
 	console.log("Getting All Datums");
 
 	const guardianValidatorAddr: Address =
-		lucid.utils.validatorToAddress(guardianValidator);
+		lucid.utils.validatorToAddress(guardianValApplied);
 
 	const scriptUtxos = await lucid.utxosAt(guardianValidatorAddr);
 	if (!scriptUtxos.length) return [] as AnyDatumUTXO[];
@@ -24,11 +25,11 @@ export const getAllDatums = async (lucid: Lucid): Promise<AnyDatumUTXO[]> => {
 		// Try parsing Data -> Address
 		// Address: must have StakingHash
 		// Valid Address type:  (PubKeyCredential (<PubKeyHash>)) (Just (StakingHash (PubKeyCredential (<PubKeyHash>))))
-		const paymentCredentialHash: string =
-			datumAsData.fields[1]?.fields[0]?.fields[0];
-		const stakeCredentialHash: string =
-			datumAsData.fields[1]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 		const amount = datumAsData.fields[0];
+		const paymentCredentialHash: string =
+			datumAsData.fields[2]?.fields[0]?.fields[0];
+		const stakeCredentialHash: string =
+			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
 		if (!paymentCredentialHash || !stakeCredentialHash || !amount) {
 			return {
@@ -66,12 +67,11 @@ export const getAllDatums = async (lucid: Lucid): Promise<AnyDatumUTXO[]> => {
 // Only Address with Staking Credential is supported
 //TODO: Maybe consider using TypeBox or Zod for safety data validation
 export const getValidDatums = async (
-	lucid: Lucid
+	lucid: Lucid, guardianValApplied : Script
 ): Promise<ValidDatumUTXO[]> => {
-	console.log("Getting Valid Datums");
 
 	const guardianValidatorAddr: Address =
-		lucid.utils.validatorToAddress(guardianValidator);
+		lucid.utils.validatorToAddress(guardianValApplied);
 
 	const scriptUtxos = await lucid.utxosAt(guardianValidatorAddr);
 	if (!scriptUtxos.length) return [] as ValidDatumUTXO[];
@@ -79,12 +79,13 @@ export const getValidDatums = async (
 	const datumUtxoList = scriptUtxos.reduce((acc: ValidDatumUTXO[], utxo) => {
 		const datumCbor = utxo.datum || "";
 		const datumAsData: any = Data.from(datumCbor);
+		console.log(datumAsData)
 
-		const paymentCredentialHash: string =
-			datumAsData.fields[1]?.fields[0]?.fields[0];
-		const stakeCredentialHash: string =
-			datumAsData.fields[1]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 		const amount = datumAsData.fields[0];
+		const paymentCredentialHash: string =
+			datumAsData.fields[2]?.fields[0]?.fields[0];
+		const stakeCredentialHash: string =
+			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
 		if (paymentCredentialHash && stakeCredentialHash && amount) {
 			const paymentCredential: Credential = lucid.utils.keyHashToCredential(

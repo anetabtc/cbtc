@@ -87,20 +87,20 @@ validator = phoistAcyclic $ plam $ \dat' redeemer' ctx -> unTermCont $ do
   pure $
     popaque $
       pif
-        ( ptraceIfFalse "f1" (psignedByAMajority # datF.keys # datF.requiredCount # txInfoFields.signatories)
+        ( ptraceIfFalse "MultiSigValidator f1" (psignedByAMajority # datF.keys # datF.requiredCount # txInfoFields.signatories)
             -- TODO: Only non Ada Values should be compared
-            #&& ptraceIfFalse "f2" (ownInputFields.value #== ownOutputFields.value)
+            #&& ptraceIfFalse "MultiSigValidator f2" (ownInputFields.value #== ownOutputFields.value)
             #&& ( pmatch
                     redeemer
                     ( \case
                         PUpdate _ ->
                           pletFields @'["keys", "requiredCount"] ownOutputDatum $ \newDatumF ->
                             plet (plength # pfromData newDatumF.keys) $ \newKeyCount ->
-                              ptraceIfFalse "f3" (newKeyCount #> 0)
-                                #&& ptraceIfFalse "f4" (pfromData newDatumF.requiredCount #> 0)
-                                #&& ptraceIfFalse "f5" (pfromData newDatumF.requiredCount #<= newKeyCount)
-                                #&& ptraceIfFalse "f6" (pnoDuplicates # pfromData newDatumF.keys)
-                        PSign _ -> ptraceIfFalse "f7" (dat #== ownOutputDatum)
+                              ptraceIfFalse "MultiSigValidator f3" (newKeyCount #> 0)
+                                #&& ptraceIfFalse "MultiSigValidator f4" (pfromData newDatumF.requiredCount #> 0)
+                                #&& ptraceIfFalse "MultiSigValidator f5" (pfromData newDatumF.requiredCount #<= newKeyCount)
+                                #&& ptraceIfFalse "MultiSigValidator f6" (pnoDuplicates # pfromData newDatumF.keys)
+                        PSign _ -> ptraceIfFalse "MultiSigValidator f7" (dat #== ownOutputDatum)
                     )
                 )
         )

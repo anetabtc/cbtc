@@ -1,19 +1,21 @@
-import { guardianValidator } from "@/utils/validators";
-import { Constr, Lucid, Data, Address, AddressDetails } from "lucid-cardano";
+import { guardianValidator, multisigValidator } from "@/utils/validators";
+import { Constr, Lucid, Data, Address, AddressDetails, SpendingValidator, applyParamsToScript, Script } from "lucid-cardano";
 
 export const submit = async (
 	lucid: Lucid,
 	bridgeAmount: number,
 	cardanoAddr: string,
 	otherChainAddr: string,
+	guardianValApplied :Script,
 ) => {
 	try {
-		console.log("Submiting request");
+		
+		
 		const walletAddrDetails: AddressDetails =
 			lucid.utils.getAddressDetails(cardanoAddr);
 		const guardianValidatorAddr: Address =
-			lucid.utils.validatorToAddress(guardianValidator);
-		console.log("walletAddr", walletAddrDetails);
+			lucid.utils.validatorToAddress(guardianValApplied);
+
 		// Only Address with Staking Credential is supported
 		const addressAsData = new Constr(0, [
 			new Constr(0, [walletAddrDetails.paymentCredential?.hash || ""]),
@@ -23,7 +25,7 @@ export const submit = async (
 				]),
 			]),
 		]);
-		const Datum = Data.to(new Constr(0, [BigInt(bridgeAmount), ,addressAsData, otherChainAddr]));
+		const Datum = Data.to(new Constr(0, [BigInt(bridgeAmount), otherChainAddr, addressAsData ]));
 		const tx = await lucid
 			.newTx()
 			.payToContract(

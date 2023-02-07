@@ -1,9 +1,9 @@
 import {
-	guardianMinter,
-	guardianMultisig,
+	cBTCMintingPolicy,
+	multisigValidator,
 	guardianValidator,
 } from "@/utils/validators";
-import { Constr, Lucid, Data, fromText, toUnit } from "lucid-cardano";
+import { Constr, Lucid, Data, fromText, toUnit, SpendingValidator, applyParamsToScript, MintingPolicy } from "lucid-cardano";
 import { ConfigSign, ValidDatumUTXO } from "./types";
 
 export const build = async (
@@ -11,30 +11,42 @@ export const build = async (
 	guardianDatumUtxoList: ValidDatumUTXO[],
 	config: ConfigSign
 ) => {
+
+	const cBTCMintingPolicyApplied: MintingPolicy = {
+		type: "PlutusV2",
+		script: applyParamsToScript(cBTCMintingPolicy.script,[
+			lucid.utils.validatorToScriptHash(config.guardianValApplied)
+		])
+	}
+
 	const info = {
 		multisig: {
-			validator: guardianMultisig, //TODO: New Script is needed here
+			validator: multisigValidator,
 			utxo: await lucid.utxoByUnit(config.unit),
-			address: lucid.utils.validatorToAddress(guardianMultisig),
+			address: lucid.utils.validatorToAddress(multisigValidator),
 			redeemer: Data.to(new Constr(1, [])), // PSign
 		},
 		guardian: {
-			validator: guardianValidator, //TODO: New Script is needed here
+			validator: config.guardianValApplied,
 			redeemer: Data.to(new Constr(0, [])), // PApproveWrap
 			utxos: guardianDatumUtxoList.map((value) => {
 				return value.utxo;
 			}),
 		},
 		minter: {
-			policy: guardianMinter,
-			policyID: lucid.utils.mintingPolicyToId(guardianMinter),
+			policy: cBTCMintingPolicyApplied,
+			policyID: lucid.utils.mintingPolicyToId(cBTCMintingPolicyApplied),
 			unit: toUnit(
-				lucid.utils.mintingPolicyToId(guardianMinter),
+				lucid.utils.mintingPolicyToId(cBTCMintingPolicyApplied),
 				fromText("cBTC")
 			),
 			redeemer: Data.to(new Constr(0, [])), // PMintBTC
 		},
 	};
+	console.log('info', info)
+	console.log(lucid.utils.validatorToScriptHash(info.multisig.validator))
+	console.log(lucid.utils.validatorToScriptHash(info.guardian.validator))
+	console.log(lucid.utils.validatorToScriptHash(info.minter.policy))
 
 	const totalAmount = guardianDatumUtxoList.reduce((acc, value) => {
 		return acc + value.datum.amountDeposit;
@@ -60,23 +72,47 @@ export const build = async (
 			return prevTx.compose(tx);
 		});
 
-	const tx = await lucid
-		.newTx()
-		.collectFrom(info.guardian.utxos, info.guardian.redeemer)
+	const txa = lucid.newTx()
 		.attachSpendingValidator(info.guardian.validator)
-		.attachMintingPolicy(info.minter.policy)
-		.mintAssets(totalAssets, info.minter.redeemer)
-		.collectFrom([info.multisig.utxo], info.multisig.redeemer)
+		.collectFrom(info.guardian.utxos, info.guardian.redeemer)
+
+	const txb = lucid.newTx()
 		.attachSpendingValidator(info.multisig.validator)
+		.collectFrom([info.multisig.utxo], info.multisig.redeemer)
 		.payToContract(
 			info.multisig.address,
 			{ inline: info.multisig.utxo.datum || "" },
 			info.multisig.utxo.assets
 		)
-		.compose(outputs)
-		.compose(signers)
-		.complete();
+	const tx = await lucid
+			.newTx()
+			.compose(txa)
+			.compose(txb)
+			.attachMintingPolicy(info.minter.policy)
+		 	.mintAssets(totalAssets, info.minter.redeemer)
+			.compose(outputs)
+			.compose(signers)
+			.complete()
 
+
+	// const tx = await lucid
+	// 	.newTx()
+	// 	.attachMintingPolicy(info.minter.policy)
+	// 	.mintAssets(totalAssets, info.minter.redeemer)
+	// 	.collectFrom(info.guardian.utxos, info.guardian.redeemer)
+	// 	.attachSpendingValidator(info.guardian.validator)
+	// 	.collectFrom([info.multisig.utxo], info.multisig.redeemer)
+	// 	.attachSpendingValidator(info.multisig.validator)
+	// 	.payToContract(
+	// 		info.multisig.address,
+	// 		{ inline: info.multisig.utxo.datum || "" },
+	// 		info.multisig.utxo.assets
+	// 	)
+	// 	.compose(outputs)
+	// 	.compose(signers)
+	// 	.complete();
+
+	console.log(tx.txComplete.to_json())
 	return tx;
 };
 

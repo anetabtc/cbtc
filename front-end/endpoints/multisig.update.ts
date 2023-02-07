@@ -4,7 +4,6 @@ import { ConfigUpdate } from "./types";
 
 export const build = async (lucid: Lucid, config: ConfigUpdate) => {
 	const scriptUtxo = await lucid.utxoByUnit(config.unit);
-	console.log(scriptUtxo);
 
 	const multisigValidatorAddr = lucid.utils.validatorToAddress(multisigValidator);
 

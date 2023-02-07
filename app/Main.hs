@@ -1,5 +1,7 @@
 module Main (main) where
 
+import CBTCMintPolicy qualified
+import GuardianValidator qualified
 import MultiSigMintPolicy qualified
 import MultiSigValidator qualified
 import System.Directory (
@@ -22,3 +24,13 @@ main = do
     "Multisig Minting Policy"
     "./compiled/multisigMintingPolicy.plutus"
     MultiSigMintPolicy.policy
+
+  writePlutusScript
+    "Guardian Validator"
+    "./compiled/guardianValidator.plutus"
+    GuardianValidator.validator
+
+  writePlutusScript
+    "CBTC Minting Policy"
+    "./compiled/cBTCMintingPolicy.plutus"
+    CBTCMintPolicy.policy

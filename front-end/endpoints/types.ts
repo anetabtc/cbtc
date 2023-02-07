@@ -1,4 +1,4 @@
-import { Data, Unit, UTxO } from "lucid-cardano";
+import { Data, Script, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
 	datum: { amountDeposit: bigint; address: string };
@@ -24,5 +24,6 @@ export type ConfigUpdate = {
 
 export type ConfigSign = {
 	unit: Unit;
+	guardianValApplied: Script,
 	consignerKeys: string[];
 };

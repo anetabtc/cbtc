@@ -69,13 +69,13 @@ policy = phoistAcyclic $
               redm
               ( \case
                   PMintGuardianCrt _ ->
-                    ptraceIfFalse "f1" (mintedRTs #== 1)
-                      #&& ptraceIfFalse "f2" (burnedRTs #== 0)
-                      #&& ptraceIfFalse "f3" (correctDatum)
-                      #&& ptraceIfFalse "f4" (isUtxoSpent)
+                    ptraceIfFalse "MultiSigMintPolicy f1" (mintedRTs #== 1)
+                      #&& ptraceIfFalse "MultiSigMintPolicy f2" (burnedRTs #== 0)
+                      #&& ptraceIfFalse "MultiSigMintPolicy f3" (correctDatum)
+                      #&& ptraceIfFalse "MultiSigMintPolicy f4" (isUtxoSpent)
                   PBurnGuardianCrt _ ->
-                    ptraceIfFalse "f5" (mintedRTs #== 0)
-                      #&& ptraceIfFalse "f6" (burnedRTs #== 1)
+                    ptraceIfFalse "MultiSigMintPolicy f5" (mintedRTs #== 0)
+                      #&& ptraceIfFalse "MultiSigMintPolicy f6" (burnedRTs #== 1)
               )
           )
           (pconstant ())
