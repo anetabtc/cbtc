@@ -112,7 +112,6 @@ export const build = async (
 	// 	.compose(signers)
 	// 	.complete();
 
-	console.log(tx.txComplete.to_json())
 	return tx;
 };
 
