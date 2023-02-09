@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+
 module Collection.Utils (
   tcexpectJust,
   paysToCredential,
@@ -11,14 +13,18 @@ module Collection.Utils (
   phasInput,
   (#>),
   (#>=),
+  pvalueContains,
 )
 where
+
+import Plutarch.Monadic qualified as P
 
 import "liqwid-plutarch-extra" Plutarch.Extra.List (plookupAssoc)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pmatchC)
 
 import Plutarch.Api.V1 (PCredential (PPubKeyCredential, PScriptCredential))
-import Plutarch.Api.V2 (AmountGuarantees, KeyGuarantees, PCurrencySymbol, PMap (PMap), PScriptHash, PTokenName, PTxInInfo, PTxOut, PTxOutRef, PValue (PValue))
+import Plutarch.Api.V1.Value (pvalueOf)
+import Plutarch.Api.V2 (AmountGuarantees (Positive), KeyGuarantees (Sorted), PCurrencySymbol, PMap (PMap), PScriptHash, PTokenName, PTxInInfo, PTxOut, PTxOutRef, PValue (PValue))
 import Plutarch.Prelude
 
 tcexpectJust :: forall r (a :: PType) (s :: S). Term s r -> Term s (PMaybe a) -> TermCont @r s (Term s a)
@@ -143,3 +149,23 @@ infix 4 #>
 a #>= b = b #<= a
 
 infix 4 #>=
+
+pvalueContains ::
+  ClosedTerm
+    ( PValue 'Sorted 'Positive
+        :--> PValue 'Sorted 'Positive
+        :--> PBool
+    )
+pvalueContains = phoistAcyclic $
+  plam $ \superset subset -> P.do
+    let forEachCS = plam $ \csPair ->
+          let cs = pfromData $ pfstBuiltin # csPair
+              tnMap = pto $ pfromData $ psndBuiltin # csPair
+           in pall # forEachTN cs # tnMap
+
+        forEachTN cs = plam $ \tnPair ->
+          let tn = pfromData $ pfstBuiltin # tnPair
+              amount = pfromData $ psndBuiltin # tnPair
+           in amount #<= pvalueOf # superset # cs # tn
+
+    pall # forEachCS #$ pto $ pto subset

@@ -10,7 +10,7 @@ import Plutarch.Api.V2 (
 import "liqwid-plutarch-extra" Plutarch.Extra.ScriptContext (pfromPDatum)
 import "liqwid-plutarch-extra" Plutarch.Extra.TermCont (pletC, pletFieldsC, pmatchC, ptryFromC)
 
-import Collection.Utils (paysToCredential, pheadSingleton, ptryOwnInput, (#>), (#>=))
+import Collection.Utils (paysToCredential, pheadSingleton, ptryOwnInput, pvalueContains, (#>), (#>=))
 import Plutarch.Api.V1.Address (PCredential (PScriptCredential))
 import Plutarch.DataRepr (PDataFields)
 import Plutarch.Prelude
@@ -88,8 +88,7 @@ validator = phoistAcyclic $ plam $ \dat' redeemer' ctx -> unTermCont $ do
     popaque $
       pif
         ( ptraceIfFalse "MultiSigValidator f1" (psignedByAMajority # datF.keys # datF.requiredCount # txInfoFields.signatories)
-            -- TODO: Only non Ada Values should be compared
-            #&& ptraceIfFalse "MultiSigValidator f2" (ownInputFields.value #== ownOutputFields.value)
+            #&& ptraceIfFalse "MultiSigValidator f2" (pvalueContains # ownOutputFields.value # ownInputFields.value)
             #&& ( pmatch
                     redeemer
                     ( \case
@@ -106,3 +105,26 @@ validator = phoistAcyclic $ plam $ \dat' redeemer' ctx -> unTermCont $ do
         )
         (pconstant ())
         perror
+
+-- pure $
+--   popaque $
+--     pif
+--       ( ptraceIfFalse "MultiSigValidator f1" (psignedByAMajority # datF.keys # datF.requiredCount # txInfoFields.signatories)
+--           -- TODO: Only non Ada Values should be compared
+--           #&& ptraceIfFalse "MultiSigValidator f2" (ownInputFields.value #== ownOutputFields.value)
+--           #&& ( pmatch
+--                   redeemer
+--                   ( \case
+--                       PUpdate _ ->
+--                         pletFields @'["keys", "requiredCount"] ownOutputDatum $ \newDatumF ->
+--                           plet (plength # pfromData newDatumF.keys) $ \newKeyCount ->
+--                             ptraceIfFalse "MultiSigValidator f3" (newKeyCount #> 0)
+--                               #&& ptraceIfFalse "MultiSigValidator f4" (pfromData newDatumF.requiredCount #> 0)
+--                               #&& ptraceIfFalse "MultiSigValidator f5" (pfromData newDatumF.requiredCount #<= newKeyCount)
+--                               #&& ptraceIfFalse "MultiSigValidator f6" (pnoDuplicates # pfromData newDatumF.keys)
+--                       PSign _ -> ptraceIfFalse "MultiSigValidator f7" (dat #== ownOutputDatum)
+--                   )
+--               )
+--       )
+--       (pconstant ())
+--       perror
