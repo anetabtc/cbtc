@@ -1,24 +1,20 @@
-import { guardianValidator, multisigValidator } from "@/utils/validators";
 import {
-	applyParamsToScript,
 	Assets,
-	Constr,
 	Emulator,
 	fromText,
 	generatePrivateKey,
 	generateSeedPhrase,
 	Lucid,
-	SpendingValidator,
 	toUnit,
 } from "lucid-cardano";
 import * as multisig_update from "../multisig.update";
-import * as multisig_init from "../multisig.init";
+import * as multisig_deploy from "../multisig.deploy";
 import * as multisig_fullfill from "../multisig.fullfill";
 import * as user_request from "../user.request";
 import * as utils from "../utils";
 
 
-import { ConfigInit, ConfigSign, ConfigUpdate } from "../types";
+import { ConfigFullFill, ConfigMultiSig, ConfigUpdateMultiSig } from "../types";
 
 const generateAccountPrivateKey = async (assets: Assets) => {
 	const privKey = generatePrivateKey();
@@ -88,38 +84,39 @@ export const update = async () => {
 	console.log("[State] Initializing Multisig")
 
 	// Set initial signers, at the moment the MultiSigMintPolicy takes one signer to initialize the datum
-	const initConfig: ConfigInit = {
-		threshold: 1,
-		cosignerKeys: [
+	const multiSigConfig: ConfigMultiSig = {
+		requiredCount: 1,
+		keys: [
 			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
 			// lucid.utils.paymentCredentialOf(signers.account2.address).hash,
 			// lucid.utils.paymentCredentialOf(signers.account3.address).hash,
 		],
 	};
-	console.log("[INFO] Initial Configuration", initConfig)
+	console.log("[INFO] Initial Configuration", multiSigConfig)
 	
-	// initialize and submit MultiSigCert NFT with Datum
+	// initialize and submit MultiSigCert NFT with Datums
 	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
-	const initResult = await multisig_init.init(lucid, initConfig);
-	const multiSigCertPolicyId = lucid.utils.mintingPolicyToId(initResult.multisigPolicy)
-	const multiSigCertUnit = initResult.unit
+	const deployments = await multisig_deploy.submit(lucid, multiSigConfig);
+	const multiSigCertUnit = deployments.unit
+	const scripts = deployments.scripts
 	emulator.awaitBlock(4);
-	console.log("[INFO] Endpoint result (multisig_init.init): ", initResult)
+	console.log("[INFO] Endpoint result (multisig_init.init): ", deployments)
 	console.log(
 		"[INFO] New UTXO at multisigValidator: ",
-		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
+		await lucid.utxosAt(lucid.utils.validatorToAddress(scripts.multiSigValidator))
 	);
 
 	console.log("[State] Updating Multisig")
 	// Set MultiSigCert NFT , old and new signers
-	const configUpdate: ConfigUpdate = {
+	const configUpdate: ConfigUpdateMultiSig = {
 		unit: multiSigCertUnit,
-		oldCosignerKeys: [
+		multiSigValidator : scripts.multiSigValidator,
+		oldKeys: [
 			lucid.utils.paymentCredentialOf(signers.account1.address).hash,
 		],
 		newConfig: {
-			threshold: 2,
-			cosignerKeys: [
+			requiredCount: 2,
+			keys: [
 				lucid.utils.paymentCredentialOf(signers.account11.address).hash,
 				lucid.utils.paymentCredentialOf(signers.account12.address).hash,
 				lucid.utils.paymentCredentialOf(signers.account13.address).hash,
@@ -147,17 +144,10 @@ export const update = async () => {
 
 	console.log(
 		"[INFO] New UTXO at multisigValidator: ",
-		await lucid.utxosAt(lucid.utils.validatorToAddress(multisigValidator))
+		await lucid.utxosAt(lucid.utils.validatorToAddress(scripts.multiSigValidator))
 	);
 
-	console.log("[State] Requesting cBTC")
-
-	const guardianValidatorApplied: SpendingValidator = {
-		type: "PlutusV2",
-		script: applyParamsToScript(guardianValidator.script, [
-			lucid.utils.validatorToScriptHash(multisigValidator), multiSigCertPolicyId,
-		]),
-	};
+	console.log("[State] User Requesting cBTC")
 
 	lucid.selectWalletFromSeed(user.account1.seedPhrase);
 
@@ -170,7 +160,7 @@ export const update = async () => {
 		hardcodedAmount,
 		myAddress,
 		"",
-		guardianValidatorApplied,
+		scripts.guardianValidator,
 	);
 
 	emulator.awaitBlock(4);
@@ -178,22 +168,22 @@ export const update = async () => {
 	console.log("[INFO] Endpoint result (user_request.submit): ", result)
 	console.log(
 		"[INFO] New UTXO at guardianValidator: ",
-		await lucid.utxosAt(lucid.utils.validatorToAddress(guardianValidatorApplied))
+		await lucid.utxosAt(lucid.utils.validatorToAddress(scripts.guardianValidator))
 	);
 
 	console.log("[State] Getting Valid Datum and UTXO")
 
-	const validDatumUtxoList = await utils.getValidDatums(lucid, guardianValidatorApplied);
+	const validDatumUtxoList = await utils.getValidDatums(lucid, scripts.guardianValidator);
 	if (!validDatumUtxoList?.length) {
 		console.log("[INFO] No valid datums at Guardian Script");
 		return null;
 	}
 	console.log("[INFO] validDatumUtxoList: ", validDatumUtxoList);
 
-	const configSign: ConfigSign = {
+	const configSign: ConfigFullFill = {
 		unit: multiSigCertUnit,
-		guardianValApplied : guardianValidatorApplied,
-		consignerKeys: [
+		scripts : scripts,
+		keys: [
 			lucid.utils.paymentCredentialOf(signers.account11.address).hash,
 			lucid.utils.paymentCredentialOf(signers.account12.address).hash,
 			lucid.utils.paymentCredentialOf(signers.account13.address).hash,

@@ -1,4 +1,4 @@
-import { Data, Script, Unit, UTxO } from "lucid-cardano";
+import { Data, KeyHash, Script, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
 	datum: { amountDeposit: bigint; address: string };
@@ -11,19 +11,27 @@ export type AnyDatumUTXO = {
 	utxo: UTxO;
 };
 
-export type ConfigInit = {
-	threshold: number;
-	cosignerKeys: string[];
+export type ConfigMultiSig = {
+	keys: KeyHash[];
+	requiredCount: number;
 };
 
-export type ConfigUpdate = {
+export type ConfigUpdateMultiSig = {
+	multiSigValidator: Script;
 	unit: Unit;
-	oldCosignerKeys: string[];
-	newConfig: ConfigInit;
+	oldKeys: KeyHash[];
+	newConfig: ConfigMultiSig;
 };
 
-export type ConfigSign = {
+export type ConfigFullFill = {
 	unit: Unit;
-	guardianValApplied: Script,
-	consignerKeys: string[];
+	scripts: DeployedScripts;
+	keys: KeyHash[];
+};
+
+export type DeployedScripts = {
+	multiSigValidator: Script;
+	multiSigMintingPolicy: Script;
+	guardianValidator: Script;
+	cBTCMintingPolicy: Script;
 };
