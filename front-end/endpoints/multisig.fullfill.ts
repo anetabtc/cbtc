@@ -1,13 +1,4 @@
-import {
-	Constr,
-	Lucid,
-	Data,
-	fromText,
-	toUnit,
-	SpendingValidator,
-	applyParamsToScript,
-	MintingPolicy,
-} from "lucid-cardano";
+import { Constr, Lucid, Data, fromText, toUnit } from "lucid-cardano";
 import { ConfigFullFill, ValidDatumUTXO } from "./types";
 
 export const build = async (

@@ -74,6 +74,7 @@ export const getAllDatums = async (
 
 // Only Address with Staking Credential is supported
 //TODO: Maybe consider using TypeBox or Zod for safety data validation
+//TODO: Add btc address to readableDatum
 export const getValidDatums = async (
 	lucid: Lucid,
 	guardianValApplied: Script
@@ -151,8 +152,7 @@ export const buildScripts = (
 	key: KeyHash,
 	txHash: TxHash,
 	outputIndex: number
-) =>  {
-
+) => {
 	const multiSigMintingPolicy: MintingPolicy = {
 		type: "PlutusV2",
 		script: applyParamsToScript(validators.multiSigMintingPolicy.script, [

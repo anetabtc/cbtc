@@ -4,7 +4,9 @@ import { ConfigUpdateMultiSig } from "./types";
 export const build = async (lucid: Lucid, config: ConfigUpdateMultiSig) => {
 	const scriptUtxo = await lucid.utxoByUnit(config.unit);
 
-	const multisigValidatorAddr = lucid.utils.validatorToAddress(config.multiSigValidator);
+	const multisigValidatorAddr = lucid.utils.validatorToAddress(
+		config.multiSigValidator
+	);
 
 	// const Datum = Data.to(
 	// 	new Constr(0, [
@@ -15,16 +17,16 @@ export const build = async (lucid: Lucid, config: ConfigUpdateMultiSig) => {
 
 	const MyDatum = Data.Object({
 		keys: Data.Array(Data.String),
-		requiredCount: Data.BigInt
-	})
-	type MyDatum = Data.Static<typeof MyDatum>
+		requiredCount: Data.BigInt,
+	});
+	type MyDatum = Data.Static<typeof MyDatum>;
 
-	const datum : MyDatum ={
+	const datum: MyDatum = {
 		keys: config.newConfig.keys,
 		requiredCount: BigInt(config.newConfig.requiredCount),
-	}
+	};
 
-	const Datum = Data.to<MyDatum>(datum,MyDatum)
+	const Datum = Data.to<MyDatum>(datum, MyDatum);
 
 	const RedeemerUpdate = Data.to(new Constr(0, [])); // Update
 
@@ -42,7 +44,7 @@ export const build = async (lucid: Lucid, config: ConfigUpdateMultiSig) => {
 		.attachSpendingValidator(config.multiSigValidator)
 		.payToContract(multisigValidatorAddr, { inline: Datum }, scriptUtxo.assets)
 		.compose(signers)
-		.complete()
+		.complete();
 
 	return tx;
 };
