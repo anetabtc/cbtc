@@ -9,7 +9,7 @@ interface Props {
 	lucid: Lucid;
 }
 
-export const Request = ({ lucid }: Props) => {
+export const User = ({ lucid }: Props) => {
 	const [error, setError] = useState("");
 
 	useEffect(() => {
@@ -41,9 +41,11 @@ export const Request = ({ lucid }: Props) => {
 
 	return (
 		<div>
-			<h1 className="text-5xl font-bold text-center">Client</h1>
-			<Button onClick={() => handleClick()} text="Submit Request"/>
-			<Alert message={error}/>
+			<h1 className="text-5xl font-bold text-center">User</h1>
+			<div className="flex justify-center">
+				<Button onClick={() => handleClick()} text="Submit Request" />
+			</div>
+			<Alert message={error} />
 		</div>
 	);
 };

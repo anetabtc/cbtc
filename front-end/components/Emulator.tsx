@@ -43,10 +43,12 @@ export const Emulator = ({ lucid }: Props) => {
 	return (
 		<div>
 			<h1 className="text-5xl font-bold text-center">Emulator</h1>
-			<Button onClick={() => handleClick1()} text="Request(TODO)" />
-			<Button onClick={() => handleClick2()} text="FullFill(TODO)" />
-			<Button onClick={() => handleClick3()} text="Update" />
-			<Button onClick={() => handleClick4()} text="Deploy(TODO)" />
+			<div className="flex justify-center">
+				<Button onClick={() => handleClick1()} text="Request(TODO)" />
+				<Button onClick={() => handleClick2()} text="FullFill(TODO)" />
+				<Button onClick={() => handleClick3()} text="Update" />
+				<Button onClick={() => handleClick4()} text="Deploy(TODO)" />
+			</div>
 			<Alert message={error} />
 		</div>
 	);

@@ -19,7 +19,7 @@ export default function Home() {
 					<WalletConnect />
 				</div>
 			</div>
-			<div className="flex justify-center">
+			<div>
 				<MainDApp />
 			</div>
 		</div>

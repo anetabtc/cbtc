@@ -3,7 +3,7 @@ import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
 import { Utils } from "./Utils";
-import { Request } from "./Request";
+import { User } from "./User";
 import { Simulator } from "./Simulator";
 import { Emulator } from "./Emulator";
 
@@ -33,8 +33,8 @@ const MainDApp = () => {
 	if (!lucid) return null;
 
 	return (
-		<div className="flex-column justify-center items-center">
-			<Request lucid={lucid} />
+		<div className="flex-column">
+			<User lucid={lucid} />
 			<div className="divider"></div>
 			<Utils lucid={lucid} />
 			<div className="divider"></div>

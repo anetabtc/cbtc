@@ -40,10 +40,12 @@ export const Simulator = ({ lucid }: Props) => {
 	return (
 		<div>
 			<h1 className="text-5xl font-bold text-center">Simulator</h1>
-			<Button onClick={() => handleClick1()} text="Request" />
-			<Button onClick={() => handleClick2()} text="FullFill" />
-			<Button onClick={() => handleClick3()} text="Update" />
-			<Button onClick={() => handleClick4()} text="Deploy" />
+			<div className="flex justify-center">
+				<Button onClick={() => handleClick1()} text="Request" />
+				<Button onClick={() => handleClick2()} text="FullFill" />
+				<Button onClick={() => handleClick3()} text="Update" />
+				<Button onClick={() => handleClick4()} text="Deploy" />
+			</div>
 			<Alert message={error} />
 		</div>
 	);
