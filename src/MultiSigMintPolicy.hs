@@ -43,13 +43,9 @@ instance PTryFrom PData (PAsData PGuardianMintAction)
 policy :: Term s ((PAsData PPubKeyHash) :--> (PAsData PScriptHash) :--> PTxOutRef :--> PMintingPolicy)
 policy = phoistAcyclic $
   plam $ \guardianSignerPKH multisigVH oref redm' context -> unTermCont $ do
-    contextFields <- tcont (pletFields @["txInfo", "purpose"] context)
-
-    PMinting policy <- pmatchC contextFields.purpose
-
-    let ownPolicyId = pfield @"_0" # policy
-
-    txInfoFields <- tcont (pletFields @["inputs", "outputs", "mint"] contextFields.txInfo)
+    contextFields <- pletFieldsC @["txInfo", "purpose"] context
+    PMinting ((pfield @"_0" #) -> ownPolicyId) <- pmatchC contextFields.purpose
+    txInfoFields <- pletFieldsC @["inputs", "outputs", "mint"] contextFields.txInfo
     mintedRTs <- pletC $ ppositiveSymbolValueOf # ownPolicyId # txInfoFields.mint
     burnedRTs <- pletC $ pnegativeSymbolValueOf # ownPolicyId # txInfoFields.mint
 
