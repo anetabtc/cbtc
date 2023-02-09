@@ -47,6 +47,6 @@ export const submit = async (
 		return txHash;
 	} catch (error) {
 		if (error instanceof Error) return error;
-		return Error(`unknown error : ${JSON.stringify(error)}`);
+		return Error(`error : ${JSON.stringify(error)}`);
 	}
 };
