@@ -1,6 +1,6 @@
 import { Lucid } from "lucid-cardano";
 import React, { useEffect, useState } from "react";
-import * as runSimulator from "@/endpoints/test/runSimulator";
+import * as runSimulator from "@/endpoints/tests/runSimulator";
 import Alert from "./Alert";
 import Button from "./Button";
 
