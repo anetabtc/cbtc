@@ -5,18 +5,19 @@ import {
 	Address,
 	AddressDetails,
 	Script,
+	fromText,
 } from "lucid-cardano";
 
 export const submit = async (
 	lucid: Lucid,
 	bridgeAmount: number,
-	cardanoAddr: string,
-	otherChainAddr: string,
+	cardanoAddress: string,
+	btcAddress: string,
 	guardianValidator: Script
 ) => {
 	try {
 		const walletAddrDetails: AddressDetails =
-			lucid.utils.getAddressDetails(cardanoAddr);
+			lucid.utils.getAddressDetails(cardanoAddress);
 		const guardianValidatorAddr: Address =
 			lucid.utils.validatorToAddress(guardianValidator);
 
@@ -30,7 +31,7 @@ export const submit = async (
 			]),
 		]);
 		const Datum = Data.to(
-			new Constr(0, [BigInt(bridgeAmount), otherChainAddr, addressAsData])
+			new Constr(0, [BigInt(bridgeAmount), fromText(btcAddress), addressAsData])
 		);
 		const tx = await lucid
 			.newTx()

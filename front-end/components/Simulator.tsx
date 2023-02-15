@@ -37,11 +37,16 @@ export const Simulator = ({ lucid }: Props) => {
 		await runSimulator.deploy(lucid);
 	};
 
+	const handleClick5 = async () => {
+		await runSimulator.burn(lucid);
+	};
+
 	return (
 		<div>
 			<h1 className="text-5xl font-bold text-center">Simulator</h1>
 			<div className="flex justify-center">
 				<Button onClick={() => handleClick1()} text="Request" />
+				<Button onClick={() => handleClick5()} text="Burn" />
 				<Button onClick={() => handleClick2()} text="FullFill" />
 				<Button onClick={() => handleClick3()} text="Update" />
 				<Button onClick={() => handleClick4()} text="Deploy" />

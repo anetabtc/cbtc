@@ -1,7 +1,7 @@
 import { Data, KeyHash, Script, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
-	datum: { amountDeposit: bigint; address: string };
+	datum: { bridgeAmount: bigint; cardanoAddress: string; btcAddress: string };
 	utxo: UTxO;
 };
 
