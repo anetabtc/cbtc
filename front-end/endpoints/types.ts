@@ -1,4 +1,4 @@
-import { Data, KeyHash, Script, Unit, UTxO } from "lucid-cardano";
+import { Data, KeyHash, Script, TxHash, Unit, UTxO } from "lucid-cardano";
 
 export type ValidDatumUTXO = {
 	datum: { bridgeAmount: bigint; cardanoAddress: string; btcAddress: string };
@@ -34,4 +34,13 @@ export type DeployedScripts = {
 	multiSigMintingPolicy: Script;
 	guardianValidator: Script;
 	cBTCMintingPolicy: Script;
+};
+
+export type Deployments = {
+	txHash: TxHash;
+	scripts: DeployedScripts;
+	units: {
+		multiSigCert: Unit;
+		cBTC: Unit;
+	};
 };

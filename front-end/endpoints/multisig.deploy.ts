@@ -21,8 +21,13 @@ export const submit = async (lucid: Lucid, config: ConfigMultiSig) => {
 		scripts.multiSigMintingPolicy
 	);
 
-	const unit = toUnit(multisigPolicyId, fromText("MultiSigCert"));
-	const asset = { [unit]: BigInt(1) };
+	const cBTCPolicyId = lucid.utils.mintingPolicyToId(scripts.cBTCMintingPolicy);
+
+	const units = {
+		multiSigCert: toUnit(multisigPolicyId, fromText("MultiSigCert")),
+		cBTC: toUnit(cBTCPolicyId, fromText("cBTC")),
+	};
+	const asset = { [units.multiSigCert]: BigInt(1) };
 
 	const Datum = Data.to(
 		new Constr(0, [config.keys, BigInt(config.requiredCount)])
@@ -35,11 +40,10 @@ export const submit = async (lucid: Lucid, config: ConfigMultiSig) => {
 		.collectFrom([walletUtxos[0]])
 		.attachMintingPolicy(scripts.multiSigMintingPolicy)
 		.mintAssets(asset, RedeemerPolicy)
-		// .payToContract(multisigValidatorAddr, { inline: Datum }, {...asset,lovelace: BigInt(2000000)} )
 		.payToContract(multisigValidatorAddr, { inline: Datum }, asset)
 		.complete();
 
 	const signedTx = await tx.sign().complete();
 	const txHash = await signedTx.submit();
-	return { txHash, scripts, unit };
+	return { txHash, scripts, units };
 };
