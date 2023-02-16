@@ -1,4 +1,6 @@
 import initLucid from "@/utils/lucid";
+import { getPendingBTCTransactions } from "@/utils/relay";
+import { getPendingADATransactions } from "@/utils/relay";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
@@ -28,6 +30,12 @@ const MainDApp = () => {
 				setLucid(Lucid);
 			});
 		}
+		//
+	
+		getPendingBTCTransactions();
+		getPendingADATransactions();
+
+		//
 	}, [lucid, walletStore.connected, whiteListed]);
 
 	if (!lucid) return null;
