@@ -32,8 +32,8 @@ const MainDApp = () => {
 		}
 		//
 	
-		getPendingBTCTransactions();
-		getPendingADATransactions();
+		getPendingBTCTransactions().then((res) => console.log(res));
+		getPendingADATransactions().then((res) => console.log(res));
 
 		//
 	}, [lucid, walletStore.connected, whiteListed]);
