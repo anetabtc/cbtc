@@ -97,10 +97,10 @@ export const run = async () => {
 	// initialize and submit MultiSigCert NFT with Datums
 	lucid.selectWalletFromPrivateKey(signers.account1.privateKey);
 	const deployments = await multisig_deploy.submit(lucid, multiSigConfig);
-	const multiSigCertUnit = deployments.unit;
+
 	const scripts = deployments.scripts;
 	emulator.awaitBlock(4);
-	console.log("[INFO] Endpoint result (multisig_init.init): ", deployments);
+	console.log("[INFO] Endpoint result (multisig_deploy.submit): ", deployments);
 	console.log(
 		"[INFO] New UTXO at multisigValidator: ",
 		await lucid.utxosAt(
@@ -111,7 +111,7 @@ export const run = async () => {
 	console.log("[State] Updating Multisig");
 	// Set MultiSigCert NFT , old and new signers
 	const configUpdate: ConfigUpdateMultiSig = {
-		unit: multiSigCertUnit,
+		unit: deployments.units.multiSigCert,
 		multiSigValidator: scripts.multiSigValidator,
 		oldKeys: [lucid.utils.paymentCredentialOf(signers.account1.address).hash],
 		newConfig: {
@@ -186,7 +186,7 @@ export const run = async () => {
 	console.log("[INFO] validDatumUtxoList: ", validDatumUtxoList);
 
 	const configSign: ConfigFullFill = {
-		unit: multiSigCertUnit,
+		unit: deployments.units.multiSigCert,
 		scripts: scripts,
 		keys: [
 			lucid.utils.paymentCredentialOf(signers.account11.address).hash,
@@ -199,7 +199,7 @@ export const run = async () => {
 
 	const fulfillTx = await multisig_fullfill.build(
 		lucid,
-		validDatumUtxoList,
+		[validDatumUtxoList[0]],
 		configSign
 	);
 
