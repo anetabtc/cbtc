@@ -1,6 +1,6 @@
 import WalletConnect from "../components/WalletConnect";
 import Head from "next/head";
-import MainDApp from "../components/MainDApp";
+import MainServer from "../components/MainServer";
 
 export default function Home() {
 	return (
@@ -20,7 +20,7 @@ export default function Home() {
 				</div>
 			</div>
 			<div>
-				<MainDApp />
+				<MainServer />
 			</div>
 		</div>
 	);

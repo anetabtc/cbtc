@@ -23,7 +23,7 @@ export async function getPendingADATransactions() {
             }
         );
 		let txs = await res.json();
-        console.log("getPendingADATransactions")
+        // console.log("getPendingADATransactions")
         return txs;
 	} catch (err) {
 		console.log(err);
@@ -34,6 +34,7 @@ export async function getPendingADATransactions() {
 export async function getPendingBTCTransactions() {
 
     try {
+        return ["tx1", "tx2", "tx3"]
 		const res = await fetch(btcAPI + "btc/test3/addrs/" + btcVaultAddress,
             {
                 headers: {

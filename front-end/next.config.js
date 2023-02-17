@@ -3,7 +3,7 @@
 const nextConfig = {
   
   output: 'standalone',
-  reactStrictMode: true,
+  reactStrictMode: false,
   webpack: (config) => {
     config.experiments = { 
       asyncWebAssembly: true,
