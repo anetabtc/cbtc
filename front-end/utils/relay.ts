@@ -55,3 +55,41 @@ export async function getPendingBTCTransactions() {
         return {};
 	}
 }
+
+export async function getADATransaction(tx: string) {
+    try {
+		const res = await fetch(adaAPI + "txs/" + tx,
+            {
+                headers: {
+                    'PROJECT_ID': blockfrostPROJECT_ID,
+                    'Content-Type': 'application/json',
+                },
+                method: 'GET'
+            }
+        );
+		let data = await res.json();
+        return data;
+	} catch (err) {
+		console.log(err);
+        return {};
+	}
+}
+
+export async function getBTCTransaction(tx: string) {
+
+    try {
+		const res = await fetch(btcAPI + "btc/test3/txs/" + tx,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                method: 'GET'
+            }
+        );
+		const data = await res.json();
+        return data;
+	} catch (err) {
+		console.log(err);
+        return {};
+	}
+}
