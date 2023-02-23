@@ -2,7 +2,9 @@ import initLucid from "@/utils/lucid";
 import { getPendingBTCTransactions } from "@/utils/relay";
 import { getPendingADATransactions } from "@/utils/relay";
 import { getBTCTransaction } from "@/utils/relay";
+import { btcVaultAddress } from "@/utils/relay";
 import { getADATransaction } from "@/utils/relay";
+import { mintPolicyAddress } from "@/utils/relay";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
@@ -27,6 +29,19 @@ import {
 import * as multisig_fullfill from "@/endpoints/multisig.fullfill";
 
 import React from 'react';
+
+import {
+	Constr,
+	Data,
+	Address,
+	AddressDetails,
+	Script,
+	fromText,
+} from "lucid-cardano";
+
+interface Props {
+	lucid: Lucid;
+}
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
@@ -69,15 +84,73 @@ const signers = {
 	},
 };
 
+// Accounts generated with utils.generateAddressSeedPhrase()
+// These account have StakingCredential
+const user = {
+	account1: {
+		seedPhrase:
+			"click path wonder art cage duty infant shy split rookie extend first unaware boat group provide exercise leopard size mammal monitor bamboo dilemma grow",
+		address:
+			"addr_test1qze80dj5wtpnnrflfjag7hdyn235vwqskhm0fr98kqhey4wwatz92rau7w5ny8lzctkc2tnhfxwvp9gze5yh8j957t6s6ejca0",
+	},
+};
+
+
+// Submit a request.
+export const submit = async (
+	lucid: Lucid,
+	bridgeAmount: number,
+	cardanoAddress: string,
+	btcAddress: string,
+	guardianValidator: Script
+) => {
+	try {
+		const walletAddrDetails: AddressDetails =
+			lucid.utils.getAddressDetails(cardanoAddress);
+		const guardianValidatorAddr: Address =
+			lucid.utils.validatorToAddress(guardianValidator);
+
+		// Only Address with Staking Credential is supported
+		const addressAsData = new Constr(0, [
+			new Constr(0, [walletAddrDetails.paymentCredential?.hash || ""]),
+			new Constr(0, [
+				new Constr(0, [
+					new Constr(0, [walletAddrDetails.stakeCredential?.hash || ""]),
+				]),
+			]),
+		]);
+		const Datum = Data.to(
+			new Constr(0, [BigInt(bridgeAmount), fromText(btcAddress), addressAsData])
+		);
+		const tx = await lucid
+			.newTx()
+			.payToContract(
+				guardianValidatorAddr,
+				{ inline: Datum },
+				{ lovelace: BigInt(1000000) }
+			)
+			.complete();
+
+		const signedTx = await tx.sign().complete();
+
+		const txHash = signedTx.submit();
+		return txHash;
+	} catch (error) {
+		if (error instanceof Error) return error;
+		return Error(`error : ${JSON.stringify(error)}`);
+	}
+};
 
 // Initiates request for a user.
 export const request = async (lucid: Lucid, amount: number, ada_addr: string, btc_addr: string) => {
+	lucid.selectWalletFromSeed(user.account1.seedPhrase);
+
 	// This Address has Staking Credential
 	const myAddress = ada_addr;
 	const bridgeAmount = amount;
 	const btcAddress = btc_addr;
 	console.log(`Requesting ${bridgeAmount} BTC to ${myAddress}`);
-	const result = await user_request.submit(
+	const result = await submit(
 		lucid,
 		bridgeAmount,
 		myAddress,
@@ -147,9 +220,38 @@ export const fullfil = async (lucid: Lucid) => {
 	console.log(assembleTx);
 };
 
-interface Props {
-	lucid: Lucid;
+
+// const CryptoAccount = require("send-crypto");
+
+export const sendBitcoin = async (recieverAddress: string, amountToSend: number) => {
+	// /* Load account from private key */
+	// const privateKey = process.env.PRIVATE_KEY || CryptoAccount.newPrivateKey();
+	// const account = new CryptoAccount(privateKey, {
+	// 	network: "testnet",
+	// });
+	// console.log("secret:")
+	// console.log(privateKey);
+
+	// /* Print address */
+	// console.log(await account.address("BTC"));
+	// // > "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+
+	// /* Print balance */
+	// console.log(await account.getBalance("BTC"));
+	// // > 0.01
+
+	// /* Send 0.01 BTC */
+	// const txHash = await account
+	// 	.send(recieverAddress, amountToSend, "BTC")
+	// 	.on("transactionHash", console.log)
+	// 	// > "3387418aaddb4927209c5032f515aa442a6587d6e54677f08a03b8fa7789e688"
+	// 	.on("confirmation", console.log);
+	// // > 1
+	// // > 2 ...
+
+	console.log('sending BTC')
 }
+	 
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -174,7 +276,10 @@ let redeem_db = new Set();
 let redeem_finished = new Set();
 
 // Time delayed between each check.
-let epoch_delay = 20000 * 100 // ms
+let epoch_delay = 20000 // ms
+
+// Start Time.
+let start_time = Math.floor(Date.now() / 1000);
 
 
 async function update_mint_queue(){
@@ -184,12 +289,25 @@ async function update_mint_queue(){
 	// Step 3 Add to mint_queue the ones not in db and add them to db
 	for(let i in txs){
 		let tx_id = txs[i as keyof typeof txs];
-		let tx = await getBTCTransaction(tx_id)
+		let tx = await getBTCTransaction(tx_id);
 		// Check if tx is going to our vault
-		// Check if tx is not in mint_db already
+		let is_incoming = false;
+		for(let o in tx.outputs){
+			if(tx.outputs[o].address == btcVaultAddress){
+				is_incoming = true;
+			}
+		}
 		// Check if tx is after server start time
-		// console.log(tx['inputs']['0']['address'])
-		if(true){
+		let is_after_start_time = false;
+		if(tx.time > start_time){
+			is_after_start_time = true;
+			console.log("times:");
+			console.log(tx.time);
+			console.log(start_time);
+			console.log(tx)
+		}
+		if(is_incoming && is_after_start_time){
+			// Check if tx is not in mint_db already
 			if(!(mint_db.has(tx_id))){
 				mint_queue.push(tx_id);
 				mint_db.add(tx_id);
@@ -208,21 +326,25 @@ async function mint(lucid: Lucid){
 }
 
 async function execute_mint(lucid: Lucid){
-	// Step 1 Pop next transaction in mint_queue
-	let tx = mint_queue.shift()
-	// Step 2 Verify BTC transaction is good
-	if(true){
-		// Step 3 runSimulator.request(lucid)
-		let amount = 10.0;
-		let ada_addr = "addr_test1qpj5w4sru6qg4rgp4623wm5t7nz7m2rmhvk3d4gxfnak0vnfvdytm4537jmpy0hex7y2qnzya994t60nqet8qxefx5msfjpwlm";
-		let btc_addr = "9i5no316Em2jfnc4T3absEBbSj1A2h61pkVHTCaKYvwK8KaQAST";
-		await request(lucid, amount, ada_addr, btc_addr);
-		if(await mint(lucid)){
-			return true;
+	if(mint_queue.length > 0){
+		// Step 1 Pop next transaction in mint_queue
+		let tx = mint_queue.shift()
+		// Step 2 Verify BTC transaction is good
+		if(true){
+			// Step 3 runSimulator.request(lucid)
+			let amount = 10.0;
+			let ada_addr = "addr_test1qrnf2hm3h3cjklw6fxzkvwvljqjpqmu9q46f03twun26xpmck8g8a0pqtts5d5knqesjclena748gvxy4nkdeg5vdkqsz95qs8";
+			let btc_addr = "9i5no316Em2jfnc4T3absEBbSj1A2h61pkVHTCaKYvwK8KaQAST";
+			await request(lucid, amount, ada_addr, btc_addr);
+			if(await mint(lucid)){
+				return true;
+			}
 		}
+		// Step 5 if failed log and requeue	
+		return false;
 	}
 	// Step 5 if failed log and requeue	
-	return false
+	return true;
 }
 
 async function update_redeem_queue(){
@@ -238,31 +360,42 @@ async function update_redeem_queue(){
 		for(let i in txs){
 			let tx = txs[i];
 			if(!(redeem_db.has(tx))){
-				redeem_queue.push(tx)
-				redeem_db.add(tx)
+				redeem_queue.push(tx);
+				redeem_db.add(tx);
 			}
 		}
 	}
 
-	console.log(redeem_queue.length)
+	console.log(redeem_queue.length);
 }
 
-function redeem(){
+function redeem(btc_addr: string, amount: number){
 	// Step 3 Send BTC back to user
-	return true
+	try {
+		sendBitcoin(btc_addr, amount);
+	} catch (error) {
+		console.error(error);
+		return false;
+	}
+	return true;
 }
 
 function execute_redeem(){
-	// Step 1 Pop next transaction in redeem_queue
-	let tx = redeem_queue.shift()
-	// Step 2 Verify Burn cBTC transaction is good
-	if(true){
-		if(redeem()){
-			return true;
+	if(redeem_queue.length > 0){
+		// Step 1 Pop next transaction in redeem_queue
+		let tx = redeem_queue.shift();
+		// Step 2 Verify Burn cBTC transaction is good
+		if(true){
+			let btc_addr = "9i5no316Em2jfnc4T3absEBbSj1A2h61pkVHTCaKYvwK8KaQAST";
+			let amount = 0.0001
+			if(redeem(btc_addr, amount)){
+				return true;
+			}
 		}
+		// Step 4 if failed log and requeue	
+		return false;
 	}
-	// Step 4 if failed log and requeue	
-	return false
+	return true;
 }
 
 
@@ -271,13 +404,13 @@ function Run({ lucid }: Props){
 		while(true){
 			console.log(`Time ${Math.floor(Date.now() / 1000)}`);
 			// Read Minting Requests and Add to Queue
-			update_mint_queue()
+			await update_mint_queue();
 			// Pop and Try to Complete Next Minting Request
-			execute_mint(lucid)
+			execute_mint(lucid);
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
-			update_redeem_queue()
+			// await update_redeem_queue();
 			// Pop and Try to Complete Next Redeem Request
-			execute_redeem()
+			// execute_redeem();
 			
 			await sleep(epoch_delay);
 		}
