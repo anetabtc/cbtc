@@ -276,7 +276,7 @@ let redeem_db = new Set();
 let redeem_finished = new Set();
 
 // Time delayed between each check.
-let epoch_delay = 20000 // ms
+let epoch_delay = 20000 * 100// ms
 
 // Start Time.
 let start_time = Math.floor(Date.now() / 1000);
@@ -334,8 +334,9 @@ async function execute_mint(lucid: Lucid){
 			// Step 3 runSimulator.request(lucid)
 			let amount = 10.0;
 			let ada_addr = "addr_test1qrnf2hm3h3cjklw6fxzkvwvljqjpqmu9q46f03twun26xpmck8g8a0pqtts5d5knqesjclena748gvxy4nkdeg5vdkqsz95qs8";
+			console.log(lucid.utils.paymentCredentialOf(ada_addr).hash)
 			let btc_addr = "9i5no316Em2jfnc4T3absEBbSj1A2h61pkVHTCaKYvwK8KaQAST";
-			await request(lucid, amount, ada_addr, btc_addr);
+			// await request(lucid, amount, ada_addr, btc_addr);
 			if(await mint(lucid)){
 				return true;
 			}
@@ -404,13 +405,27 @@ function Run({ lucid }: Props){
 		while(true){
 			console.log(`Time ${Math.floor(Date.now() / 1000)}`);
 			// Read Minting Requests and Add to Queue
-			await update_mint_queue();
+			// await update_mint_queue();
 			// Pop and Try to Complete Next Minting Request
-			execute_mint(lucid);
+			// execute_mint(lucid);
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
 			// await update_redeem_queue();
 			// Pop and Try to Complete Next Redeem Request
 			// execute_redeem();
+
+			////////////////////
+			let ada_addr = "addr_test1qrnf2hm3h3cjklw6fxzkvwvljqjpqmu9q46f03twun26xpmck8g8a0pqtts5d5knqesjclena748gvxy4nkdeg5vdkqsz95qs8";
+			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
+			console.log(paymentCreds.hash)
+			console.log(lucid.utils.credentialToAddress(paymentCreds))
+
+			// Step 3 runSimulator.request(lucid)
+			let amount = 30.0;
+			console.log(lucid.utils.paymentCredentialOf(ada_addr).hash)
+			let btc_addr = "9i5no316Em2jfnc4T3absEBbSj1A2h61pkVHTCaKYvwK8KaQAST";
+			await request(lucid, amount, lucid.utils.credentialToAddress(paymentCreds), btc_addr);
+			await mint(lucid);
+			////////////////////////
 			
 			await sleep(epoch_delay);
 		}
