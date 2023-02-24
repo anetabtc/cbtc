@@ -37,6 +37,7 @@ export async function getPendingBTCTransactions() {
 		const res = await fetch(btcAPI + "tx/address/" + btcVaultAddress,
             {
                 headers: {
+                    'Authorization': 'Basic ' + btoa('x:8Al881pe8jSX'),
                     'Content-Type': 'application/json',
                 },
                 method: 'GET'
