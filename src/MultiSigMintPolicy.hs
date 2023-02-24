@@ -44,7 +44,8 @@ policy :: Term s ((PAsData PPubKeyHash) :--> (PAsData PScriptHash) :--> PTxOutRe
 policy = phoistAcyclic $
   plam $ \guardianSignerPKH multisigVH oref _ context -> unTermCont $ do
     contextFields <- pletFieldsC @["txInfo", "purpose"] context
-    PMinting ((pfield @"_0" #) -> ownPolicyId) <- pmatchC contextFields.purpose
+    PMinting ownPolicyId' <- pmatchC contextFields.purpose
+    ownPolicyId <- pletC $ pfield @"_0" # ownPolicyId'
     txInfoFields <- pletFieldsC @["inputs", "outputs", "mint"] contextFields.txInfo
     mintedRTs <- pletC $ ppositiveSymbolValueOf # ownPolicyId # txInfoFields.mint
     burnedRTs <- pletC $ pnegativeSymbolValueOf # ownPolicyId # txInfoFields.mint

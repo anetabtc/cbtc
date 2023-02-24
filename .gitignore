@@ -1,5 +1,4 @@
 dist-newstyle
-*.plutus
 tmp
 
 front-end/tmp

@@ -20,16 +20,19 @@ export const submit = async (
 			lucid.utils.getAddressDetails(cardanoAddress);
 		const guardianValidatorAddr: Address =
 			lucid.utils.validatorToAddress(guardianValidator);
-
-		// Only Address with Staking Credential is supported
-		const addressAsData = new Constr(0, [
-			new Constr(0, [walletAddrDetails.paymentCredential?.hash || ""]),
-			new Constr(0, [
-				new Constr(0, [
-					new Constr(0, [walletAddrDetails.stakeCredential?.hash || ""]),
-				]),
-			]),
+		const paymentCred = new Constr(0, [
+			walletAddrDetails.paymentCredential?.hash,
 		]);
+		const stakingCred = walletAddrDetails.stakeCredential?.hash
+			? new Constr(0, [
+					new Constr(0, [
+						new Constr(0, [walletAddrDetails.stakeCredential?.hash]),
+					]),
+			  ])
+			: new Constr(1, []);
+
+		// Supports Address {addressCredential :: Credential,addressStakingCredential :: Maybe StakingCredential}
+		const addressAsData = new Constr(0, [paymentCred, stakingCred]);
 		const Datum = Data.to(
 			new Constr(0, [BigInt(bridgeAmount), fromText(btcAddress), addressAsData])
 		);
