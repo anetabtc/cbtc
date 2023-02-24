@@ -196,10 +196,12 @@ export const request = async (lucid: Lucid) => {
 	const bridgeAmount = 10;
 	const btcAddress = "15U6C9gZs5G3i11gTfmhqCaKK6V7bqGdmi";
 	console.log(`Requesting ${bridgeAmount} BTC to ${myAddress}`);
+	lucid.utils.paymentCredentialOf(myAddress)
+	
 	const result = await user_request.submit(
 		lucid,
 		bridgeAmount,
-		myAddress,
+		lucid.utils.credentialToAddress(lucid.utils.paymentCredentialOf(myAddress)),
 		btcAddress,
 		deployments.scripts.guardianValidator
 	);

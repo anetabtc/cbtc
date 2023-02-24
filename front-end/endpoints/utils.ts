@@ -99,29 +99,27 @@ export const getValidDatums = async (
 		const btcAddress = toText(datumAsData.fields[1]);
 		const paymentCredentialHash: string =
 			datumAsData.fields[2]?.fields[0]?.fields[0];
+		// return staking credential hash if exits, otherwise returns undefined
 		const stakeCredentialHash: string =
 			datumAsData.fields[2]?.fields[1]?.fields[0]?.fields[0]?.fields[0];
 
-		if (
-			paymentCredentialHash &&
-			stakeCredentialHash &&
-			bridgeAmount &&
-			btcAddress
-		) {
+		//Only allow stakeCredentialHash with hash or undefined
+		if (paymentCredentialHash && bridgeAmount && btcAddress && (stakeCredentialHash !== '')) {
 			const paymentCredential: Credential = lucid.utils.keyHashToCredential(
 				paymentCredentialHash
 			);
 
 			const stakeCredential: Credential =
 				lucid.utils.keyHashToCredential(stakeCredentialHash);
+			
+			const cardanoAddress = stakeCredentialHash
+				? lucid.utils.credentialToAddress(paymentCredential, stakeCredential)
+				: lucid.utils.credentialToAddress(paymentCredential);
 
 			const readableDatum = {
 				bridgeAmount: bridgeAmount,
 				btcAddress: btcAddress,
-				cardanoAddress: lucid.utils.credentialToAddress(
-					paymentCredential,
-					stakeCredential
-				), // Convert to Bech32 Address
+				cardanoAddress: cardanoAddress,
 			};
 			const newdata = {
 				datum: readableDatum,
