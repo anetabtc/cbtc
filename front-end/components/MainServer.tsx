@@ -376,13 +376,35 @@ function redeem(btc_addr: string, amount: number){
 	return true;
 }
 
-function execute_redeem(){
+
+async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: string) {
+	const params = {"sender_addr": sender_addr,
+    				"amount": amount,
+    				"receiver_addr": receiver_addr}
+	const response = await fetch('/api/shell', {
+		method: 'POST',
+		headers: {
+		  'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(params),
+	  })
+	const data = await response.json();
+	return data;
+}
+  
+
+async function execute_redeem(){
 	if(redeem_queue.length > 0){
 		// Step 1 Pop next transaction in redeem_queue
 		let tx = redeem_queue.shift();
 		// Step 2 Verify Burn cBTC transaction is good
-		if(false){
-			if(redeem(btc_addr, amount)){
+		console.log(tx)
+		if(true){
+			const sender_addr = "n4YDfMoo1i3rzF8XEq9zyfo8TFfnroLjy6"
+    		const amount = "20000"
+    		const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
+			const result_str = await RedeemAPI(sender_addr, amount, receiver_addr);
+			if(result_str["response"].includes("True")){
 				return true;
 			}
 		}
@@ -391,8 +413,7 @@ function execute_redeem(){
 	}
 	return true;
 }
-
-
+  
 function Run({ lucid }: Props){
 	(async () => {
 		while(true){
