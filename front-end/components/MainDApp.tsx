@@ -1,4 +1,6 @@
 import initLucid from "@/utils/lucid";
+import { getPendingBTCTransactions } from "@/utils/relay";
+import { getPendingADATransactions } from "@/utils/relay";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
@@ -6,6 +8,7 @@ import { Utils } from "./Utils";
 import { User } from "./User";
 import { Simulator } from "./Simulator";
 import { Emulator } from "./Emulator";
+
 
 const MainDApp = () => {
 	const walletStore = useStoreState((state: any) => state.wallet);
