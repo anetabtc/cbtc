@@ -394,12 +394,16 @@ async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: str
   
 
 async function execute_redeem(){
+
+	// TODO Madina Get Your Transaction Here
+	// redeem_queue.push({insert transaction id here});
+	
 	if(redeem_queue.length > 0){
 		// Step 1 Pop next transaction in redeem_queue
 		let tx = redeem_queue.shift();
 		// Step 2 Verify Burn cBTC transaction is good
 		console.log(tx)
-		if(true){
+		if(false){
 			const sender_addr = "n4YDfMoo1i3rzF8XEq9zyfo8TFfnroLjy6"
     		const amount = "20000"
     		const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
