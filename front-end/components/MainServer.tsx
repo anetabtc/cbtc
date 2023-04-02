@@ -103,7 +103,7 @@ export const request = async (lucid: Lucid, amount: number, ada_addr: string, bt
 	const myAddress = ada_addr;
 	const bridgeAmount = amount;
 	const btcAddress = btc_addr;
-	console.log(`Requesting ${bridgeAmount} BTC to ${myAddress}`);
+	console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`);
 	const result = await user_request.submit(
 		lucid,
 		bridgeAmount,
@@ -299,7 +299,7 @@ async function execute_mint(lucid: Lucid){
 				OP_RETURN = Buffer.from(tx.outputs[o].script, 'hex').toString().substring(2);
 			}
 			if(tx.outputs[o].address == btcVaultAddress){
-				amount = (tx.outputs[o].value / 100000000) * 10000;
+				amount = tx.outputs[o].value;
 			}
 		}
 
