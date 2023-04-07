@@ -418,6 +418,13 @@ function Run({ lucid }: Props){
 	(async () => {
 		while(true){
 			console.log(`Time ${Math.floor(Date.now() / 1000)}`);
+
+			// adding Madina's hash address
+			console.log("madina:")
+			let ada_addr = "addr_test1e17d9be587cafeb2aee690ecd71f8a77aa7c691a5a5903de677d693af76fabcf"
+			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
+			console.log(paymentCreds.hash)
+			console.log(lucid.utils.credentialToAddress(paymentCreds))
 			// Read Minting Requests and Add to Queue
 			await update_mint_queue();
 			// Pop and Try to Complete Next Minting Request
