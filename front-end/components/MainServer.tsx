@@ -421,7 +421,7 @@ function Run({ lucid }: Props){
 
 			// adding Madina's hash address
 			console.log("madina:")
-			let ada_addr = "addr_e17d9be587cafeb2aee690ecd71f8a77aa7c691a5a5903de677d693af76fabcf"
+			let ada_addr = "addr_test1qr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8sf3q42k"
 			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
 			console.log(paymentCreds.hash)
 			console.log(lucid.utils.credentialToAddress(paymentCreds))
