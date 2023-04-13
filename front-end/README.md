@@ -36,3 +36,73 @@ Or Docker
 docker-compose build
 docker-compose up
 ```
+<<<<<<< HEAD
+=======
+
+## Testing simulator in ./endpoints/test
+
+Inside `./endpoints/test` folder, create `signers.ts` as follows
+
+**Note: The Scripts were already deployed with a list of signers, please get the file from the dev team**
+
+1. replace `<account-seed-phrase>` and `<account-address>` with the result of function `generateAddressSeedPhrase`   
+2. Fund each account with 100 tADA
+
+```
+export const signers = {
+  account1: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  }, // 100
+  account2: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  }, // 100
+  account3: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  }, // 100
+  account11: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  }, // 100
+  account12: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  }, // 100
+  account13: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  },
+};
+```
+
+Inside `./endpoints/test` folder, create `users.ts` as follows
+
+1. replace `<account-seed-phrase>` and `<account-address>` with the result of function `generateAddressSeedPhrase`   
+2. Fund each account with 100 tADA
+
+```
+export const user = {
+  account1: {
+    seedPhrase:
+      "<account-seed-phrase>",
+    address:
+      "<account-address>",
+  },
+};
+```
+
+>>>>>>> 464c44cc41aa2e27d6f945fc1a85b8d3a7cc52b1
