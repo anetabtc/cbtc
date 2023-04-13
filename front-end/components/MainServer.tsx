@@ -299,7 +299,7 @@ async function execute_mint(lucid: Lucid){
 				OP_RETURN = Buffer.from(tx.outputs[o].script, 'hex').toString().substring(2);
 			}
 			if(tx.outputs[o].address == btcVaultAddress){
-				amount = tx.outputs[o].value;
+				amount = tx.outputs[o].value * 10000;
 			}
 		}
 
