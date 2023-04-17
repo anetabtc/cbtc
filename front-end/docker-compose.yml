@@ -1,11 +1,11 @@
 version: '3.8'
 services:
-  web:
+  next:
     build:
       context: ./
       target: runner
-    volumes:
-      - .:/app
+#    volumes:
+#      - .:/app
     command: npm run dev
     ports:
       - "3000:3000"
