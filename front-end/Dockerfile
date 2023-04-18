@@ -6,8 +6,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN  npm install --production
 
-####### BUILDER #######
-FROM nikolaik/python-nodejs:python3.10-nodejs18-alpine AS builder
+####### BUILDER - node #######
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -16,20 +16,22 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
-# TODO: All Python code needs to go to another container / VM. For testing, okay i guess...
+####### BUILDER2 - py ########
+FROM python:3.10-alpine as builder2
+WORKDIR /app
 
-# add python reqs
-ADD ./requirements.txt /app/requirements.txt
-
-# install sys reqs *** TODO: Review what is not needed ***
+# install sys reqs *
 RUN apk add --no-cache \
- make automake gcc g++ linux-headers subversion python3-dev gcc libc-dev gmp-dev libffi-dev tzdata libpq-dev python3-dev
+ gcc g++ musl-dev gmp-dev libffi-dev tzdata libpq-dev
+
+# install deps into /app/.py directory
+ADD ./requirements.txt /app/requirements.txt
 
 # install deps into /app/.py directory
 run pip install --target=/app/.py -r requirements.txt
 
 ####### RUNNER #######
-FROM nikolaik/python-nodejs:python3.10-nodejs18-alpine AS runner
+FROM node:18-alpine AS runner
 WORKDIR /app
 
 ### TODO: MOVE THIS TO ENV FILE... -_\
@@ -47,7 +49,7 @@ ENV NETWORK "Preprod"
 
 ###
 
-RUN apk add --no-cache tzdata gmp-dev
+RUN apk add --no-cache tzdata gmp-dev python3=~3.10
 
 ENV TZ="America/New_York"
 RUN cp /usr/share/zoneinfo/America/New_York /etc/localtime
@@ -82,8 +84,8 @@ COPY --from=builder /app/styles ./styles
 COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
 
-COPY --from=builder /app/.py /app/.py
 COPY --from=builder /app/hello.py ./hello.py
+COPY --from=builder2 /app/.py /app/.py
 
 USER nextjs
 
