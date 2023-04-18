@@ -22,7 +22,7 @@ WORKDIR /app
 
 # install sys reqs *
 RUN apk add --no-cache \
- gcc g++ musl-dev gmp-dev libffi-dev tzdata libpq-dev
+ linux-headers gcc g++ gfortran cython musl-dev gmp-dev libffi-dev libpq-dev openblas-dev 
 
 # install deps into /app/.py directory
 ADD ./requirements.txt /app/requirements.txt
@@ -49,7 +49,7 @@ ENV NETWORK "Preprod"
 
 ###
 
-RUN apk add --no-cache tzdata gmp-dev python3=~3.10
+RUN apk add --no-cache tzdata openblas gmp-dev python3=~3.10
 
 ENV TZ="America/New_York"
 RUN cp /usr/share/zoneinfo/America/New_York /etc/localtime
