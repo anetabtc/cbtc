@@ -15,7 +15,6 @@ import { deployments } from "../config.deployment";
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
-<<<<<<< HEAD
 const signers = {
 	account1: {
 		seedPhrase:
@@ -65,13 +64,6 @@ const user = {
 			"addr_test1qze80dj5wtpnnrflfjag7hdyn235vwqskhm0fr98kqhey4wwatz92rau7w5ny8lzctkc2tnhfxwvp9gze5yh8j957t6s6ejca0",
 	},
 };
-=======
-import { signers } from "./signers";
-
-// Accounts generated with utils.generateAddressSeedPhrase()
-// These account have StakingCredential
-import { user } from "./users";
->>>>>>> 464c44cc41aa2e27d6f945fc1a85b8d3a7cc52b1
 
 // Only run this once to mint multisig nft and set datum with cosigners at multisig script
 export const deploy = async (lucid: Lucid) => {

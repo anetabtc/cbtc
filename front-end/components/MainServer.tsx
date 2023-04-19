@@ -1,5 +1,5 @@
 import initLucid from "@/utils/lucid";
-import { getPendingBTCTransactions } from "@/utils/relay";
+import { getADATransactionMetadata, getADATransactionUTXOs, getPendingBTCTransactions } from "@/utils/relay";
 import { getPendingADATransactions } from "@/utils/relay";
 import { getBTCTransaction } from "@/utils/relay";
 import { btcVaultAddress } from "@/utils/relay";
@@ -255,10 +255,6 @@ async function update_mint_queue(){
 		let is_after_start_time = false;
 		if(tx.time > start_time){
 			is_after_start_time = true;
-			console.log("BTC Tx Time:");
-			console.log(tx.time);
-			console.log(start_time);
-			console.log(tx);
 		}
 		if(is_incoming && is_after_start_time){
 			// Check if tx is not in mint_db already
@@ -299,7 +295,7 @@ async function execute_mint(lucid: Lucid){
 				OP_RETURN = Buffer.from(tx.outputs[o].script, 'hex').toString().substring(2);
 			}
 			if(tx.outputs[o].address == btcVaultAddress){
-				amount = tx.outputs[o].value * 10000;
+				amount = tx.outputs[o].value;
 			}
 		}
 
@@ -332,32 +328,36 @@ async function update_redeem_queue(){
 	let txs = await getPendingADATransactions().then((res) => {return res});
 	// Step 2 Check time (after server start) and direction (incoming)
 	// Step 3 Add to redeem_queue the ones not in db and add them to db
-	// console.log(txs[0])
 	for(let i in txs){
-		let tx_id = txs[i as keyof typeof txs];
-		let tx = await getADATransaction(tx_id);
+		let tx_id = txs[i as keyof typeof txs]; // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
+		let tx = await getADATransactionUTXOs(tx_id);
+		let tx_data = await getADATransaction(tx_id);
 		// Check if tx is going to our smart contract
 		let is_incoming = false;
 		for(let o in tx.outputs){
 			if(tx.outputs[o].address == mintPolicyAddress){
 				is_incoming = true;
+				for(let itx in tx.inuts){
+					if(tx.inputs[itx].address == mintPolicyAddress){
+						is_incoming = false;
+					}
+				}
 			}
 		}
 		// Check if tx is after server start time
 		let is_after_start_time = false;
-		if(tx.time > start_time){
+		if(tx_data.block_time > start_time){
 			is_after_start_time = true;
-			console.log("Ada Tx Time:");
-			console.log(tx.time);
-			console.log(start_time);
-			console.log(tx)
 		}
 		if(is_incoming && is_after_start_time){
-			let tx = txs[i];
-			// Check if tx is not in redeem_db already
-			if(!(redeem_db.has(tx))){
-				redeem_queue.push(tx);
-				redeem_db.add(tx);
+			let metadata = await getADATransactionMetadata(tx_id);
+			if(metadata.length != 0){
+				// Check if tx is not in redeem_db already
+				if(!(redeem_db.has(tx_id))){
+					redeem_queue.push(tx_id);
+					redeem_db.add(tx_id);
+				}
+				break;
 			}
 		}
 	}
@@ -381,6 +381,8 @@ async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: str
 	const params = {"sender_addr": sender_addr,
     				"amount": amount,
     				"receiver_addr": receiver_addr}
+	console.log("Sending Redeem with params:")
+	console.log(params)
 	const response = await fetch('/api/shell', {
 		method: 'POST',
 		headers: {
@@ -389,6 +391,7 @@ async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: str
 		body: JSON.stringify(params),
 	  })
 	const data = await response.json();
+	console.log(data)
 	return data;
 }
   
@@ -402,15 +405,35 @@ async function execute_redeem(){
 		// Step 1 Pop next transaction in redeem_queue
 		let tx = redeem_queue.shift();
 		// Step 2 Verify Burn cBTC transaction is good
-		console.log(tx)
-		if(false){
-			const sender_addr = "n4YDfMoo1i3rzF8XEq9zyfo8TFfnroLjy6"
-    		const amount = "20000"
-    		const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
-			const result_str = await RedeemAPI(sender_addr, amount, receiver_addr);
-			if(result_str["response"].includes("True")){
-				return true;
+		console.log("redeem");
+		console.log(tx);
+		let metadata = await getADATransactionMetadata(tx);
+		let receiver_addr = metadata[0].json_metadata.msg[0];
+		let tx_data = await getADATransactionUTXOs(tx);
+		let amount = "0";
+		console.log(receiver_addr);
+		console.log(tx_data);
+		let coin_hash = "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563425443"
+		for(let o in tx_data.outputs){
+			if(tx_data.outputs[o].address == mintPolicyAddress){
+				for(let a in tx_data.outputs[o].amount){
+					if(tx_data.outputs[o].amount[a].unit == coin_hash){
+						amount = tx_data.outputs[o].amount[a].quantity;
+					}
+				}
 			}
+		} 
+		if(amount == "0"){
+			return false;
+		}
+		const sender_addr = btcVaultAddress
+		// const amount = "20000"
+		// const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
+		const result_str = await RedeemAPI(sender_addr, amount, receiver_addr);
+		console.log("Result:")
+		console.log(result_str);
+		if(result_str["response"].includes("True")){
+			return true;
 		}
 		// Step 4 if failed log and requeue	
 		return false;
@@ -421,21 +444,20 @@ async function execute_redeem(){
 function Run({ lucid }: Props){
 	(async () => {
 		while(true){
-			console.log(`Time ${Math.floor(Date.now() / 1000)}`);
+			// TODO - Print to user
+			// console.log("NAMI:")
+			// let ada_addr = "addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
+			// let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
+			// console.log(paymentCreds.hash)
+			// console.log(lucid.utils.credentialToAddress(paymentCreds))
 
-			// adding Madina's hash address
-			console.log("madina:")
-			let ada_addr = "addr_test1qr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8sf3q42k"
-			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
-			console.log(paymentCreds.hash)
-			console.log(lucid.utils.credentialToAddress(paymentCreds))
 			// Read Minting Requests and Add to Queue
 			await update_mint_queue();
 			// Pop and Try to Complete Next Minting Request
 			execute_mint(lucid);
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
 			await update_redeem_queue();
-			// Pop and Try to Complete Next Redeem Request
+			// // Pop and Try to Complete Next Redeem Request
 			execute_redeem();
 			
 			await sleep(epoch_delay);

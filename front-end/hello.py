@@ -80,6 +80,7 @@ def redeem(btc_wallet_addr, amount):  # pragma: no cover
                                   offline=False)
                 if tx_id:
                     print("Success")
+                    print("tx_id:", tx_id)
                     return True
                 time.sleep(REQUEST_RATE)
                 t += 1
