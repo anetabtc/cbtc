@@ -304,6 +304,11 @@ async function execute_mint(lucid: Lucid){
 			// Step 3 runSimulator.request(lucid)
 			// bytes.fromhex(OP_TURN).decode('utf-8')[2:]
 			let ada_addr = OP_RETURN;
+			if(ada_addr.startsWith("P")){
+				ada_addr = ada_addr.slice(1);
+				console.log("Slicing first char")
+				console.log(ada_addr)
+			}
 			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr);
 
 			console.log("Minting with this info")
@@ -446,19 +451,39 @@ function Run({ lucid }: Props){
 		while(true){
 			// TODO - Print to user
 			// console.log("NAMI:")
-			// let ada_addr = "addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
+			// let ada_addr = "addr_test1qpz5749x4uzgm9vejkpd2djd5gr3y7h8g8pht2a2xk5vruzv9xa76fawl56mzmtunu7p574yv9ghe5cnr6qjf06zhj7s0z8xal" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
 			// let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
 			// console.log(paymentCreds.hash)
 			// console.log(lucid.utils.credentialToAddress(paymentCreds))
 
 			// Read Minting Requests and Add to Queue
-			await update_mint_queue();
+			try {
+				await update_mint_queue();
+			}
+			catch(err) {
+				console.log(err);
+			}
 			// Pop and Try to Complete Next Minting Request
-			execute_mint(lucid);
+			try {
+				execute_mint(lucid);
+			}
+			catch(err) {
+				console.log(err);
+			}
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
-			await update_redeem_queue();
+			try {
+				await update_redeem_queue();
+			}
+			catch(err) {
+				console.log(err);
+			}
 			// // Pop and Try to Complete Next Redeem Request
-			execute_redeem();
+			try {
+				execute_redeem();
+			}
+			catch(err) {
+				console.log(err);
+			}
 			
 			await sleep(epoch_delay);
 		}
