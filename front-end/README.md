@@ -36,8 +36,6 @@ Or Docker
 docker-compose build
 docker-compose up
 ```
-<<<<<<< HEAD
-=======
 
 ## Testing simulator in ./endpoints/test
 
@@ -105,4 +103,3 @@ export const user = {
 };
 ```
 
->>>>>>> 464c44cc41aa2e27d6f945fc1a85b8d3a7cc52b1
