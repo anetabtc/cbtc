@@ -23,7 +23,7 @@ export const submit = async (
 			.collectFrom(walletUtxos)
 			.attachMintingPolicy(cBTCMintingPolicy)
 			.mintAssets(totalAssets, redeemer)
-			.attachMetadata(0, { btcAddress: btcAddress, burnAmount: burnAmount })
+			.attachMetadata(0, { btcAddress: btcAddress })
 			.complete();
 
 		const signedTx = await tx.sign().complete();
