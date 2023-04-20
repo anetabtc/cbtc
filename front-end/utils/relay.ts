@@ -1,6 +1,5 @@
 import { Blockfrost, Lucid, Network } from 'lucid-cardano';
 
-const blockfrostPROJECT_ID = "preprodK6mCcxenBR5mgRYlRZzFA7NlKoKUR1AQ"
 const blockfrostKey = process.env.BLOCKFROST_KEY as string
 const apiURL = process.env.API_URL as string
 const network = process.env.NETWORK as Network
@@ -16,7 +15,7 @@ export async function getPendingADATransactions() {
 		const res = await fetch(adaAPI + "addresses/" + mintPolicyAddress + "/txs",
             {
                 headers: {
-                    'PROJECT_ID': blockfrostPROJECT_ID,
+                    'PROJECT_ID': blockfrostKey,
                     'Content-Type': 'application/json',
                 },
                 method: 'GET'
@@ -62,7 +61,7 @@ export async function getADATransaction(tx: string) {
 		const res = await fetch(adaAPI + "txs/" + tx,
             {
                 headers: {
-                    'PROJECT_ID': blockfrostPROJECT_ID,
+                    'PROJECT_ID': blockfrostKey,
                     'Content-Type': 'application/json',
                 },
                 method: 'GET'
@@ -81,7 +80,7 @@ export async function getADATransactionUTXOs(tx: string) {
 		const res = await fetch(adaAPI + "txs/" + tx + "/utxos",
             {
                 headers: {
-                    'PROJECT_ID': blockfrostPROJECT_ID,
+                    'PROJECT_ID': blockfrostKey,
                     'Content-Type': 'application/json',
                 },
                 method: 'GET'
@@ -100,7 +99,7 @@ export async function getADATransactionMetadata(tx: string) {
 		const res = await fetch(adaAPI + "txs/" + tx + "/metadata",
             {
                 headers: {
-                    'PROJECT_ID': blockfrostPROJECT_ID,
+                    'PROJECT_ID': blockfrostKey,
                     'Content-Type': 'application/json',
                 },
                 method: 'GET'
