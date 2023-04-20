@@ -1,10 +1,10 @@
 import initLucid from "@/utils/lucid";
 import { getADATransactionMetadata, getADATransactionUTXOs, getPendingBTCTransactions } from "@/utils/relay";
-import { getPendingADATransactions } from "@/utils/relay";
+import { getPendingADATransactionsToPolicy } from "@/utils/relay";
 import { getBTCTransaction } from "@/utils/relay";
 import { btcVaultAddress } from "@/utils/relay";
 import { getADATransaction } from "@/utils/relay";
-import { mintPolicyAddress } from "@/utils/relay";
+import { mintPolicyID } from "@/utils/relay";
 import { useStoreState } from "@/utils/store";
 import { Lucid } from "lucid-cardano";
 import { useEffect, useState } from "react";
@@ -339,25 +339,30 @@ async function execute_mint(lucid: Lucid){
 
 async function update_redeem_queue(){
 	// Step 1 Get all transactions using getPendingADATransactions
-	let txs = await getPendingADATransactions().then((res) => {return res});
+	let txs = await getPendingADATransactionsToPolicy().then((res) => {return res});
 	// Step 2 Check time (after server start) and direction (incoming)
 	// Step 3 Add to redeem_queue the ones not in db and add them to db
 	for(let i in txs){
-		let tx_id = txs[i as keyof typeof txs]; // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
+		let tx_id = txs[i as keyof typeof txs]["tx_hash"]; // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
+		let amount = txs[i as keyof typeof txs]["amount"];
 		let tx = await getADATransactionUTXOs(tx_id);
 		let tx_data = await getADATransaction(tx_id);
 		// Check if tx is going to our smart contract
 		let is_incoming = false;
-		for(let o in tx.outputs){
-			if(tx.outputs[o].address == mintPolicyAddress){
-				is_incoming = true;
-				for(let itx in tx.inuts){
-					if(tx.inputs[itx].address == mintPolicyAddress){
-						is_incoming = false;
-					}
-				}
-			}
+		// for(let o in tx.outputs){
+		// 	if(tx.outputs[o].address == mintPolicyAddress){
+		// 		is_incoming = true;
+		// 		for(let itx in tx.inuts){
+		// 			if(tx.inputs[itx].address == mintPolicyAddress){
+		// 				is_incoming = false;
+		// 			}
+		// 		}
+		// 	}
+		// }
+		if(txs[i as keyof typeof txs]["action"] == "burned"){
+			is_incoming = true;
 		}
+
 		// Check if tx is after server start time
 		let is_after_start_time = false;
 		if(tx_data.block_time > start_time){
@@ -368,10 +373,9 @@ async function update_redeem_queue(){
 			if(metadata.length != 0){
 				// Check if tx is not in redeem_db already
 				if(!(redeem_db.has(tx_id))){
-					redeem_queue.push(tx_id);
+					redeem_queue.push([tx_id, amount]);
 					redeem_db.add(tx_id);
 				}
-				break;
 			}
 		}
 	}
@@ -411,44 +415,34 @@ async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: str
   
 
 async function execute_redeem(){
-
-	// TODO Madina Get Your Transaction Here
-	// redeem_queue.push({insert transaction id here});
 	
 	if(redeem_queue.length > 0){
 		// Step 1 Pop next transaction in redeem_queue
-		let tx = redeem_queue.shift();
+		let tx_amount_pair = redeem_queue.shift();
+		let tx = tx_amount_pair[0];
+		let amount_num = Number(tx_amount_pair[1].slice(1)) * 100000000;
+		let amount = amount_num.toString();
 		// Step 2 Verify Burn cBTC transaction is good
 		console.log("redeem");
 		console.log(tx);
 		let metadata = await getADATransactionMetadata(tx);
-		let receiver_addr = metadata[0].json_metadata.msg[0];
+		let receiver_addr = metadata[0].json_metadata.btcAddress;
 		let tx_data = await getADATransactionUTXOs(tx);
-		let amount = "0";
 		console.log(receiver_addr);
 		console.log(tx_data);
-		let coin_hash = "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563425443"
-		for(let o in tx_data.outputs){
-			if(tx_data.outputs[o].address == mintPolicyAddress){
-				for(let a in tx_data.outputs[o].amount){
-					if(tx_data.outputs[o].amount[a].unit == coin_hash){
-						amount = tx_data.outputs[o].amount[a].quantity;
-					}
-				}
-			}
-		} 
-		if(amount == "0"){
-			return false;
-		}
+		console.log(amount);
+		
 		const sender_addr = btcVaultAddress
 		// const amount = "20000"
 		// const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
+
 		const result_str = await RedeemAPI(sender_addr, amount, receiver_addr);
 		console.log("Result:")
 		console.log(result_str);
 		if(result_str["response"].includes("True")){
 			return true;
 		}
+
 		// Step 4 if failed log and requeue	
 		return false;
 	}
@@ -486,7 +480,7 @@ function Run({ lucid }: Props){
 			catch(err) {
 				console.log(err);
 			}
-			// // Pop and Try to Complete Next Redeem Request
+			// Pop and Try to Complete Next Redeem Request
 			try {
 				execute_redeem();
 			}

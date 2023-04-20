@@ -43,9 +43,10 @@ ENV VAULT_BTC_WALLET_MNEMONIC="tray bulk patrol supreme talent various tiny hybr
 # This is currently not being used for testing, but needs to be implemented for reliability / performance.
 ENV DB_URI="postgresql://bitcoinlib:SUPERSECRETPASSHERE@172.17.0.1:5432/bitcoinlib"
 
-ENV BLOCKFROST_KEY "preprodK6mCcxenBR5mgRYlRZzFA7NlKoKUR1AQ"
+ENV BLOCKFROST_KEY "preprodSU7lq1Sscp83v5KTuIwVixlLiT6zsrxW"
 ENV API_URL "https://cardano-preprod.blockfrost.io/api/v0"
 ENV NETWORK "Preprod"
+ENV MINT_POLICY_ID = "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563425443"
 
 ###
 
