@@ -139,6 +139,10 @@ export const fullfil = async (lucid: Lucid) => {
 	}
 	console.log("validDatumUtxoList: ", validDatumUtxoList);
 
+	if(validDatumUtxoList.length == 0){
+		return false;
+	}
+
 	// Build transaction with Valid Datums and UTXOs
 	// Guardian Minter, Guardian Script and Guardian Multisig are inlcuded
 	const fulfillTx = await multisig_fullfill.build(
@@ -172,6 +176,7 @@ export const fullfil = async (lucid: Lucid) => {
 	);
 
 	console.log(assembleTx);
+	return true;
 };
 
 
@@ -271,7 +276,9 @@ async function update_mint_queue(){
 async function mint(lucid: Lucid){
 	// Step 4 runSimulator.fulfill(lucid)
 	// await runSimulator.fullfil(lucid);
-	fullfil(lucid);
+	while (fullfil(lucid)){
+		console.log("Fullfilling Orders!");
+	}
 	return true;
 }
 
@@ -312,9 +319,10 @@ async function execute_mint(lucid: Lucid){
 			let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr);
 
 			console.log("Minting with this info")
-			console.log(OP_RETURN)
+			console.log(ada_addr)
 			console.log(amount)
 			console.log(btc_addr)
+			console.log(lucid.utils.credentialToAddress(paymentCreds))
 
 			await request(lucid, amount, lucid.utils.credentialToAddress(paymentCreds), btc_addr);
 			if(await mint(lucid)){
@@ -450,7 +458,7 @@ function Run({ lucid }: Props){
 	(async () => {
 		while(true){
 			// TODO - Print to user
-			// console.log("NAMI:")
+			// console.log("Austin:")
 			// let ada_addr = "addr_test1qpz5749x4uzgm9vejkpd2djd5gr3y7h8g8pht2a2xk5vruzv9xa76fawl56mzmtunu7p574yv9ghe5cnr6qjf06zhj7s0z8xal" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
 			// let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
 			// console.log(paymentCreds.hash)
