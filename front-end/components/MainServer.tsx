@@ -140,7 +140,7 @@ export const fullfil = async (lucid: Lucid) => {
 	console.log("validDatumUtxoList: ", validDatumUtxoList);
 
 	if(validDatumUtxoList.length == 0){
-		return false;
+		return null;
 	}
 
 	// Build transaction with Valid Datums and UTXOs
@@ -276,7 +276,7 @@ async function update_mint_queue(){
 async function mint(lucid: Lucid){
 	// Step 4 runSimulator.fulfill(lucid)
 	// await runSimulator.fullfil(lucid);
-	while (fullfil(lucid)){
+	while (fullfil(lucid) != null){
 		console.log("Fullfilling Orders!");
 	}
 	return true;
