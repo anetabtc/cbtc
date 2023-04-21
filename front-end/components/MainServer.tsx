@@ -276,10 +276,8 @@ async function update_mint_queue(){
 async function mint(lucid: Lucid){
 	// Step 4 runSimulator.fulfill(lucid)
 	// await runSimulator.fullfil(lucid);
-	for (let i = 0; i < 5; i++) {
-		let result = await fullfil(lucid);
-		console.log(result);
-	}
+	let result = await fullfil(lucid);
+	console.log(result);
 	return true;
 }
 
