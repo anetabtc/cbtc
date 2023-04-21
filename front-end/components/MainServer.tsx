@@ -415,12 +415,11 @@ async function RedeemAPI(sender_addr: string, amount: string, receiver_addr: str
   
 
 async function execute_redeem(){
-	
 	if(redeem_queue.length > 0){
 		// Step 1 Pop next transaction in redeem_queue
 		let tx_amount_pair = redeem_queue.shift();
 		let tx = tx_amount_pair[0];
-		let amount_num = Number(tx_amount_pair[1].slice(1)) * 100000000;
+		let amount_num = Number(tx_amount_pair[1].slice(1));
 		let amount = amount_num.toString();
 		// Step 2 Verify Burn cBTC transaction is good
 		console.log("redeem");
@@ -481,11 +480,13 @@ function Run({ lucid }: Props){
 				console.log(err);
 			}
 			// Pop and Try to Complete Next Redeem Request
-			try {
-				execute_redeem();
-			}
-			catch(err) {
-				console.log(err);
+			for (let i = 0; i < 2; i++) {
+				try {
+					let result = await execute_redeem();
+				}
+				catch(err) {
+					console.log(err);
+				}
 			}
 			
 			await sleep(epoch_delay);
