@@ -472,6 +472,12 @@ function Run({ lucid }: Props){
 			catch(err) {
 				console.log(err);
 			}
+
+			/// Mint Outstanding orders
+			await mint(lucid);
+			///
+
+
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
 			try {
 				await update_redeem_queue();
