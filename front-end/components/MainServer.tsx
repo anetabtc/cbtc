@@ -474,7 +474,12 @@ function Run({ lucid }: Props){
 			}
 
 			/// Mint Outstanding orders
-			await mint(lucid);
+			try {
+				await mint(lucid);
+			}
+			catch(err) {
+				console.log(err);
+			}
 			///
 
 
