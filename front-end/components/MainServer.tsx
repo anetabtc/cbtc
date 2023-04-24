@@ -343,39 +343,42 @@ async function update_redeem_queue(){
 	for(let i in txs){
 		let tx_id = txs[i as keyof typeof txs]["tx_hash"]; // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
 		let amount = txs[i as keyof typeof txs]["amount"];
-		if(!(redeem_db.has(tx_id))){
-			let tx = await getADATransactionUTXOs(tx_id);
-			let tx_data = await getADATransaction(tx_id);
-			// Check if tx is going to our smart contract
-			let is_incoming = false;
-			// for(let o in tx.outputs){
-			// 	if(tx.outputs[o].address == mintPolicyAddress){
-			// 		is_incoming = true;
-			// 		for(let itx in tx.inuts){
-			// 			if(tx.inputs[itx].address == mintPolicyAddress){
-			// 				is_incoming = false;
-			// 			}
-			// 		}
-			// 	}
-			// }
-			if(txs[i as keyof typeof txs]["action"] == "burned"){
-				is_incoming = true;
-			}
+		if(redeem_db.has(tx_id)){
+			continue;
+		}
+		let tx = await getADATransactionUTXOs(tx_id);
+		let tx_data = await getADATransaction(tx_id);
+		// Check if tx is going to our smart contract
+		let is_incoming = false;
+		// for(let o in tx.outputs){
+		// 	if(tx.outputs[o].address == mintPolicyAddress){
+		// 		is_incoming = true;
+		// 		for(let itx in tx.inuts){
+		// 			if(tx.inputs[itx].address == mintPolicyAddress){
+		// 				is_incoming = false;
+		// 			}
+		// 		}
+		// 	}
+		// }
+		if(txs[i as keyof typeof txs]["action"] == "burned"){
+			is_incoming = true;
+		}
 
-			// Check if tx is after server start time
-			let is_after_start_time = false;
-			if(tx_data.block_time > start_time){
-				is_after_start_time = true;
-			}
-			if(is_incoming && is_after_start_time){
-				let metadata = await getADATransactionMetadata(tx_id);
-				if(metadata.length != 0){
-					// Check if tx is not in redeem_db already
+		// Check if tx is after server start time
+		let is_after_start_time = false;
+		if(tx_data.block_time > start_time){
+			is_after_start_time = true;
+		}
+		if(is_incoming && is_after_start_time){
+			let metadata = await getADATransactionMetadata(tx_id);
+			if(metadata.length != 0){
+				// Check if tx is not in redeem_db already
+				if(!(redeem_db.has(tx_id))){
 					redeem_queue.push([tx_id, amount]);
+					redeem_db.add(tx_id);
 				}
 			}
 		}
-		redeem_db.add(tx_id);
 	}
 
 	console.log(redeem_queue.length);
@@ -466,6 +469,7 @@ function Run({ lucid }: Props){
 					console.log(err);
 				}
 
+				epoch = 0;
 			}
 
 			// Pop and Try to Complete Next Minting Request
@@ -485,6 +489,7 @@ function Run({ lucid }: Props){
 			}
 			///
 
+
 			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
 			try {
 				await update_redeem_queue();
@@ -492,9 +497,6 @@ function Run({ lucid }: Props){
 			catch(err) {
 				console.log(err);
 			}
-			epoch = 0;
-
-
 			// Pop and Try to Complete Next Redeem Request
 			for (let i = 0; i < 2; i++) {
 				try {
