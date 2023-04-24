@@ -265,9 +265,9 @@ async function update_mint_queue(){
 			if(is_incoming && is_after_start_time){
 				// Check if tx is not in mint_db already
 				mint_queue.push(tx_id);
-				mint_db.add(tx_id);
 			}
 		}
+		mint_db.add(tx_id);
 	}
 
 	console.log(mint_queue.length)
@@ -372,10 +372,10 @@ async function update_redeem_queue(){
 				if(metadata.length != 0){
 					// Check if tx is not in redeem_db already
 					redeem_queue.push([tx_id, amount]);
-					redeem_db.add(tx_id);
 				}
 			}
 		}
+		redeem_db.add(tx_id);
 	}
 
 	console.log(redeem_queue.length);
@@ -466,15 +466,6 @@ function Run({ lucid }: Props){
 					console.log(err);
 				}
 
-				// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
-				try {
-					await update_redeem_queue();
-				}
-				catch(err) {
-					console.log(err);
-				}
-				epoch = 0;
-
 			}
 
 			// Pop and Try to Complete Next Minting Request
@@ -493,6 +484,15 @@ function Run({ lucid }: Props){
 				console.log(err);
 			}
 			///
+
+			// Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
+			try {
+				await update_redeem_queue();
+			}
+			catch(err) {
+				console.log(err);
+			}
+			epoch = 0;
 
 
 			// Pop and Try to Complete Next Redeem Request
