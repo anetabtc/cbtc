@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+    "target": "ES2022",
+    
+    /* Modules 2020 change to 2022*/
+    "module": "ES2022",
+    "moduleResolution": "node",
+    
+    "allowJs": true,
+    
+    "esModuleInterop": true,
+    
+    "strict": false,
+    
+    "skipLibCheck": true
+    },
+    "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+    }
+    }
