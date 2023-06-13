@@ -82,7 +82,7 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 COPY --from=builder /app/utils ./utils
 COPY --from=builder /app/endpoints ./endpoints
-COPY --from=builder /app/pages/api ./api
+COPY --from=builder /app/api ./api
 
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
