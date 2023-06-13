@@ -233,28 +233,28 @@ async function update_mint_queue(){
 				if(tx.outputs[o].address == btcVaultAddress){
 					is_incoming = true;
 				}
-			}
-			;
+			};
 			// Check if tx is after server start time
 			let is_after_start_time = false;
-                try {
-			//await sleep(500);
-			let txnew = await getBTCTransactionMP2(tx_id);
-			if(txnew.status.block_time > start_time){
-				is_after_start_time = true;
-			}
-			//console.log(tx_id);
-                        //console.log(tx.time);
-                        //console.log(start_time);
-			//console.log(is_after_start_time)
-			if(tx_id == "e08a9770daf5aff9477376145d8eeae2f450696464851a6e8424aabe1ca9de7e"){
-				console.log(txnew);
-				console.log(txnew.status.block_time);
-				console.log(start_time);
-		    	}
+            try {
+				//await sleep(500);
+				let txnew = await getBTCTransaction(tx_id);
+				// if(tx_id == "e08a9770daf5aff9477376145d8eeae2f450696464851a6e8424aabe1ca9de7e"){
+				// 	console.log(txnew);
+				// 	console.log(start_time);
+				// 	console.log("HERE")
+				// 	console.log(txnew.time);
+		    	// }
+				if(txnew.time > start_time){
+					is_after_start_time = true;
+				}
+				//console.log(tx_id);
+				//console.log(tx.time);
+				//console.log(start_time);
+				//console.log(is_after_start_time)
 		    } catch (err) {
-                		console.log(err);
-				console.log(tx_id);
+                // console.log(err);
+				// console.log(tx_id);
 		    }
 
 			if(is_incoming && is_after_start_time){

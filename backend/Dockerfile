@@ -17,7 +17,7 @@ COPY . .
 
 
 ####### BUILDER2 - py ########
-FROM python:3.10-alpine as builder2
+FROM python:3.11-alpine as builder2
 WORKDIR /app
 
 # install sys reqs *
@@ -50,7 +50,7 @@ ENV MINT_POLICY_ID = "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563
 
 ###
 
-RUN apk add --no-cache tzdata openblas gmp-dev python3=~3.10
+RUN apk add --no-cache tzdata openblas gmp-dev python3=~3.11
 
 ENV TZ="America/New_York"
 RUN cp /usr/share/zoneinfo/America/New_York /etc/localtime
