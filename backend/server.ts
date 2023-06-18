@@ -2,10 +2,11 @@ import { initLucidWithoutWallet, Lucid } from "./utils/lucid"
 import {
   getADATransactionMetadata,
   getADATransactionUTXOs,
-  getPendingBTCTransactions,
+  getBTCTransactionMP,
+  getPendingBTCTransactionsMP,
 } from "./utils/relay"
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
-import { getBTCTransaction } from "./utils/relay"
+// import { getBTCTransaction } from "./utils/relay"
 import { exec } from 'child_process';
 
 
@@ -230,15 +231,14 @@ let start_time = Math.floor(Date.now() / 1000)
 
 async function update_mint_queue() {
   // Step 1 Get all transactions using getPendingBTCTransactions
-  let txs = await getPendingBTCTransactions().then((res) => {
-    return res
-  })
+  let txs = await getPendingBTCTransactionsMP()
+  console.log(txs);
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
     let tx_id = txs[i as keyof typeof txs]
     if (!mint_db.has(tx_id)) {
-      let tx = await getBTCTransaction(tx_id)
+      let tx: any = await getBTCTransactionMP(tx_id)
       //console.log(tx); // temp
       // Check if tx is going to our vault
       let is_incoming = false
@@ -255,13 +255,23 @@ async function update_mint_queue() {
         is_after_start_time = true
       }
 
+      console.log(tx)
+      console.log(is_incoming)
+      console.log(is_after_start_time)
+      console.log(tx.status.block_time)
+      console.log(start_time)
+
       if (is_incoming && is_after_start_time) {
         // Check if tx is not in mint_db already
         mint_queue.push(tx_id)
         console.log(tx_id)
       }
+
+      // Stop checking transaction if it is not new
+      if(tx.status.block_time != undefined){
+        mint_db.add(tx_id)
+      }
     }
-    mint_db.add(tx_id)
   }
 
   console.log(mint_queue.length)
@@ -280,7 +290,7 @@ async function execute_mint(lucid: Lucid) {
   if (mint_queue.length > 0) {
     // Step 1 Pop next transaction in mint_queue
     let tx_id = mint_queue.shift()
-    let tx = await getBTCTransaction(tx_id)
+    let tx: any = await getBTCTransactionMP(tx_id)
 
     let btc_addr = null
     try {
@@ -308,7 +318,7 @@ async function execute_mint(lucid: Lucid) {
       // bytes.fromhex(OP_TURN).decode('utf-8')[2:]
       let ada_addr = OP_RETURN
       if (ada_addr.startsWith("P")) {
-        ada_addr = ada_addr.slice(1)
+        ada_addr = "addr_test1vr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qvs5nqxxn" //ada_addr.slice(1)
         console.log("Slicing first char")
         console.log(ada_addr)
       }
@@ -474,10 +484,11 @@ function Run({ lucid }: Props) {
       // TODO - Print to user
       console.log("Willie:")
       let ada_addr =
-        "addr_test1qr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8sf3q42k" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
+        "addr1q893h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8s28a4xf" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
       let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
       console.log(paymentCreds.hash)
       console.log(lucid.utils.credentialToAddress(paymentCreds))
+      console.log("TEST")
 
       if (epoch >= 1) {
         // TODO production: change to 5
