@@ -3,7 +3,7 @@ import {
   getADATransactionMetadata,
   getADATransactionUTXOs,
   getBTCTransactionMP,
-  getPendingBTCTransactions,
+  getPendingBTCTransactionsMP,
 } from "./utils/relay"
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
 // import { getBTCTransaction } from "./utils/relay"
@@ -231,16 +231,14 @@ let start_time = Math.floor(Date.now() / 1000)
 
 async function update_mint_queue() {
   // Step 1 Get all transactions using getPendingBTCTransactions
-  let txs = await getPendingBTCTransactions().then((res) => {
-    return res
-  })
+  let txs = await getPendingBTCTransactionsMP()
   console.log(txs);
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
     let tx_id = txs[i as keyof typeof txs]
     if (!mint_db.has(tx_id)) {
-      let tx = await getBTCTransactionMP(tx_id)
+      let tx: any = await getBTCTransactionMP(tx_id)
       //console.log(tx); // temp
       // Check if tx is going to our vault
       let is_incoming = false
@@ -292,7 +290,7 @@ async function execute_mint(lucid: Lucid) {
   if (mint_queue.length > 0) {
     // Step 1 Pop next transaction in mint_queue
     let tx_id = mint_queue.shift()
-    let tx = await getBTCTransaction(tx_id)
+    let tx: any = await getBTCTransactionMP(tx_id)
 
     let btc_addr = null
     try {

@@ -138,10 +138,33 @@ export async function getBTCTransactionMP(txid: string) {
       network: "testnet",
     })
 
-    //const txid = 'eefbafa4006e77099db059eebe14687965813283e5754d317431d9984554735d';
     const tx = await transactions.getTx({ txid })
-    //console.log(tx);
     return tx
+  } catch (err) {
+    console.log(err)
+    return {}
+  }
+}
+
+export async function getPendingBTCTransactionsMP() {
+  try {
+    const {
+      bitcoin: { addresses },
+    } = mempoolJS({
+      hostname: 'mempool.space',
+      network: 'testnet'
+    })
+  
+    const address = btcVaultAddress;
+    const data = await addresses.getAddressTxsChain({ address })
+    console.log("getPendingBTCTransactions")
+    // console.log(data)
+    let txs = []
+    for (let i in data) {
+      txs.push(data[i].txid)
+    }
+    console.log("Found", data.length, "transactions")
+    return txs
   } catch (err) {
     console.log(err)
     return {}
