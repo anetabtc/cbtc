@@ -21,7 +21,7 @@ from bitcoinlib.wallets import wallet_create_or_open
 assert len(sys.argv) == 5
 assert sys.argv[4] == "password"
 
-print("Running hello.py")
+print("Running redeem.py")
 
 sender_addr = sys.argv[1]
 amount = float(sys.argv[2])

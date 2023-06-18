@@ -6,6 +6,7 @@ import {
 } from "./utils/relay"
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
 import { getBTCTransaction } from "./utils/relay"
+import { exec } from 'child_process';
 
 
 import { btcVaultAddress } from "./utils/relay"
@@ -25,6 +26,7 @@ import {
 import fetch from "node-fetch"
 
 import * as multisig_fullfill from "./endpoints/multisig.fullfill"
+import { stdout } from "process";
 
 interface Props {
   lucid: Lucid
@@ -410,16 +412,20 @@ async function RedeemAPI(
   }
   console.log("Sending Redeem with params:")
   console.log(params)
-  const response: { [key: string]: any } = await fetch("/api/shell", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(params),
-  })
-  const data: { [key: string]: any } = await response.json()
-  console.log(data)
-  return data
+  var password = "password"
+  const command = `python redeem.py ${sender_addr} ${amount} ${receiver_addr} ${password}`; // Replace with your own command
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error running command: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`Command stderr: ${stderr}`);
+      return;
+    }
+    console.log(`Command stdout: ${stdout}`);
+  });
+  return stdout
 }
 
 async function execute_redeem() {

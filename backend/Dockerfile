@@ -87,7 +87,7 @@ COPY --from=builder /app/api ./api
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
 
-COPY --from=builder /app/hello.py ./hello.py
+COPY --from=builder /app/redeem.py ./redeem.py
 COPY --from=builder2 /app/.py /app/.py
 
 # USER nextjs
