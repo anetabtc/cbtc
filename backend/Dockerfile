@@ -1,14 +1,14 @@
 ####### DEPS #######
-FROM node:18-alpine AS deps
+FROM node:18-alpine3.18 AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN  npm install --production
+RUN  npm install
 RUN  npm install @mempool/mempool.js --save
 
 ####### BUILDER - node #######
-FROM node:18-alpine AS builder
+FROM node:18-alpine3.18 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -17,7 +17,7 @@ COPY . .
 
 
 ####### BUILDER2 - py ########
-FROM python:3.11-alpine as builder2
+FROM python:3.11-alpine3.18 as builder2
 WORKDIR /app
 
 # install sys reqs *
@@ -31,7 +31,7 @@ ADD ./requirements.txt /app/requirements.txt
 run pip install --target=/app/.py -r requirements.txt
 
 ####### RUNNER #######
-FROM node:18-alpine AS runner
+FROM node:18-alpine3.18 AS runner
 WORKDIR /app
 
 ### TODO: MOVE THIS TO ENV FILE... -_\
@@ -82,12 +82,11 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 COPY --from=builder /app/utils ./utils
 COPY --from=builder /app/endpoints ./endpoints
-COPY --from=builder /app/api ./api
 
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
 # COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
 
-COPY --from=builder /app/hello.py ./hello.py
+COPY --from=builder /app/redeem.py ./redeem.py
 COPY --from=builder2 /app/.py /app/.py
 
 # USER nextjs
