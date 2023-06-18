@@ -57,18 +57,18 @@ export async function getPendingADATransactions() {
 
 export async function getPendingBTCTransactions() {
   try {
-    const res = await fetch(btcAPI + "tx/address/" + btcVaultAddress, {
+    const res = await fetch(btcAPI2 + "address/" + btcVaultAddress + "/txs", {
       headers: {
-        Authorization: "Basic " + btoa("x:8Al881pe8jSX"),
         "Content-Type": "application/json",
       },
       method: "GET",
     })
     const data = await res.json()
     console.log("getPendingBTCTransactions")
+    // console.log(data)
     let txs = []
     for (let i in data) {
-      txs.push(data[i].hash)
+      txs.push(data[i].txid)
     }
     console.log("getPendingBTCTransactions")
     return txs
@@ -168,9 +168,8 @@ export async function getBTCTransactionMP2(tx: string) {
 
 export async function getBTCTransaction(tx: string) {
   try {
-    const res = await fetch(btcAPI + "tx/" + tx, {
+    const res = await fetch(btcAPI2 + "tx/" + tx, {
       headers: {
-        Authorization: "Basic " + btoa("x:8Al881pe8jSX"),
         "Content-Type": "application/json",
       },
       method: "GET",

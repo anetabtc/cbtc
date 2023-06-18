@@ -6,8 +6,7 @@ import {
 } from "./utils/relay"
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
 import { getBTCTransaction } from "./utils/relay"
-import { getBTCTransactionMP } from "./utils/relay"
-import { getBTCTransactionMP2 } from "./utils/relay"
+
 
 import { btcVaultAddress } from "./utils/relay"
 import { getADATransaction } from "./utils/relay"
@@ -241,32 +240,17 @@ async function update_mint_queue() {
       //console.log(tx); // temp
       // Check if tx is going to our vault
       let is_incoming = false
-      for (let o in tx.outputs) {
-        if (tx.outputs[o].address == btcVaultAddress) {
+
+      for (let o of tx.vout) {
+        if (o.scriptpubkey_address == btcVaultAddress) {
           is_incoming = true
         }
       }
+
       // Check if tx is after server start time
       let is_after_start_time = false
-      try {
-        //await sleep(500);
-        let txnew: any = await getBTCTransactionMP(tx_id)
-        // if(tx_id == "e08a9770daf5aff9477376145d8eeae2f450696464851a6e8424aabe1ca9de7e"){
-        // 	console.log(txnew);
-        // 	console.log(start_time);
-        // 	console.log("HERE")
-        // 	console.log(txnew.time);
-        // }
-        if (txnew.status.block_time > start_time) {
-          is_after_start_time = true
-        }
-        //console.log(tx_id);
-        //console.log(tx.time);
-        //console.log(start_time);
-        //console.log(is_after_start_time)
-      } catch (err) {
-        // console.log(err);
-        // console.log(tx_id);
+      if (Number(tx.status.block_time) >= Number(start_time)) {
+        is_after_start_time = true
       }
 
       if (is_incoming && is_after_start_time) {
@@ -279,6 +263,7 @@ async function update_mint_queue() {
   }
 
   console.log(mint_queue.length)
+  txs = {}
 }
 
 async function mint(lucid: Lucid) {
@@ -297,21 +282,21 @@ async function execute_mint(lucid: Lucid) {
 
     let btc_addr = null
     try {
-      btc_addr = tx.inputs[0].coin.address
+      btc_addr = tx.vin[0].prevout.scriptpubkey_address
     } catch (error) {
       console.log(error)
     }
     let OP_RETURN = null
     let amount = null
 
-    for (let o in tx.outputs) {
-      if (tx.outputs[o].address == null) {
-        OP_RETURN = Buffer.from(tx.outputs[o].script, "hex")
-          .toString()
-          .substring(2)
+    for (let o of tx.vout) {
+      if (o.scriptpubkey_type == 'op_return') {
+        let op_return_hex = o.scriptpubkey_asm
+        OP_RETURN = Buffer.from(op_return_hex.substring(26), "hex")
+            .toString()
       }
-      if (tx.outputs[o].address == btcVaultAddress) {
-        amount = tx.outputs[o].value
+      if (o.scriptpubkey_address == btcVaultAddress) {
+        amount = o.value
       }
     }
 
