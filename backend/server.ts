@@ -233,6 +233,7 @@ async function update_mint_queue() {
   let txs = await getPendingBTCTransactions().then((res) => {
     return res
   })
+  console.log(txs);
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
@@ -255,13 +256,23 @@ async function update_mint_queue() {
         is_after_start_time = true
       }
 
+      console.log(tx)
+      console.log(is_incoming)
+      console.log(is_after_start_time)
+      console.log(tx.status.block_time)
+      console.log(start_time)
+
       if (is_incoming && is_after_start_time) {
         // Check if tx is not in mint_db already
         mint_queue.push(tx_id)
         console.log(tx_id)
       }
+
+      // Stop checking transaction if it is not new
+      if(tx.status.block_time != undefined){
+        mint_db.add(tx_id)
+      }
     }
-    mint_db.add(tx_id)
   }
 
   console.log(mint_queue.length)
