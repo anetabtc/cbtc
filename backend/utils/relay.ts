@@ -1,5 +1,7 @@
-import { Network } from "lucid-cardano"
+import { Network, Tx } from "lucid-cardano"
 import mempoolJS from "@mempool/mempool.js"
+import { TxInstance } from "@mempool/mempool.js/lib/interfaces/bitcoin/transactions"
+import { MempoolReturn } from "@mempool/mempool.js/lib/interfaces/index"
 
 const blockfrostKey = process.env.BLOCKFROST_KEY as string
 const apiURL = process.env.API_URL as string
@@ -14,9 +16,11 @@ const btcAPI = "https://tn-btc-api.anetabtc.io:443/" //https://api.blockcypher.c
 const btcAPI2 = "https://mempool.space/testnet/api/"
 export const btcVaultAddress = "mwnCUR6TU9WRosy5gLFgNJMkssJ1XXHXpc" //process.env.VAULT_BTC_WALLET_ADDRESS as string
 
-export async function getPendingADATransactionsToPolicy() {
+// Type: Get
+// Description: Get Pending ADA Transactions to Policy and return Array
+export async function getPendingADATransactionsToPolicy(): Promise<string[]> {
   try {
-    const res = await fetch(
+    const res: Response = await fetch(
       adaAPI + "assets/" + mintPolicyID + "/history?count=30&page=1&order=desc",
       {
         headers: {
@@ -26,17 +30,17 @@ export async function getPendingADATransactionsToPolicy() {
         method: "GET",
       }
     )
-    let txs = await res.json()
-    // console.log("getPendingADATransactions")
-    return txs
+
+    let txs: string[] = await res.json()
+
+    return txs ?? []
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
-// This is wrong
-export async function getPendingADATransactions() {
+// This is wrong /// TODO: Remove?
+export async function getPendingADATransactions(): Promise<string[]> {
   try {
     const res = await fetch(adaAPI + "assets/" + mintPolicyID + "/history", {
       headers: {
@@ -45,16 +49,17 @@ export async function getPendingADATransactions() {
       },
       method: "GET",
     })
-    let txs = await res.json()
-    // console.log("getPendingADATransactions")
-    return txs
+
+    let txs: string[] = await res.json()
+
+    return txs ?? []
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
-//
 
+// Type: Get
+// Description: Get Pending BTC Transactions and return Array
 export async function getPendingBTCTransactions() {
   try {
     const res = await fetch(btcAPI2 + "address/" + btcVaultAddress + "/txs", {
@@ -63,21 +68,23 @@ export async function getPendingBTCTransactions() {
       },
       method: "GET",
     })
-    const data = await res.json()
-    console.log("getPendingBTCTransactions")
-    // console.log(data)
-    let txs = []
+    const data: { key: string | number | boolean } = await res.json()
+
+    console.log("getPendingBTCTransactions") // TODO: Remove
+
+    let txs: { key: string | number | boolean }[] = []
     for (let i in data) {
       txs.push(data[i].txid)
     }
-    console.log("getPendingBTCTransactions")
-    return txs
+    console.log("getPendingBTCTransactions") // TODO: Remove
+    return txs ?? []
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
+// Type: Get
+// Description: Get ADA Transaction by tx id
 export async function getADATransaction(tx: string) {
   try {
     const res = await fetch(adaAPI + "txs/" + tx, {
@@ -87,14 +94,17 @@ export async function getADATransaction(tx: string) {
       },
       method: "GET",
     })
-    let data = await res.json()
-    return data
+
+    let data: { key: string | number | boolean } = await res.json()
+
+    return data ?? {}
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
+// Type: Get
+// Description: Get ADA Transaction UTXO by TX id
 export async function getADATransactionUTXOs(tx: string) {
   try {
     const res = await fetch(adaAPI + "txs/" + tx + "/utxos", {
@@ -104,14 +114,17 @@ export async function getADATransactionUTXOs(tx: string) {
       },
       method: "GET",
     })
-    let data = await res.json()
-    return data
+
+    let data: { key: string | number | boolean }[] = await res.json()
+
+    return data ?? {}
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
+// Type: Get
+// Description: Get ADA Transaction Metada by TX id
 export async function getADATransactionMetadata(tx: string) {
   try {
     const res = await fetch(adaAPI + "txs/" + tx + "/metadata", {
@@ -121,75 +134,93 @@ export async function getADATransactionMetadata(tx: string) {
       },
       method: "GET",
     })
-    let data = await res.json()
-    return data
+
+    let data: { key: string | number | boolean } = await res.json()
+
+    return data ?? {}
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
-export async function getBTCTransactionMP(txid: string) {
+// Type: Get with mempool
+// Description: Get BTC Transaction by TX id
+export async function getBTCTransactionMP(
+  txid: string
+): Promise<{ key: string | number | boolean } | {}> {
   try {
     const {
       bitcoin: { transactions },
-    } = mempoolJS({
+    }: Pick<MempoolReturn, "bitcoin"> = mempoolJS({
       hostname: "mempool.space",
       network: "testnet",
     })
 
     const tx = await transactions.getTx({ txid })
-    return tx
+
+    return tx ?? {}
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
-export async function getPendingBTCTransactionsMP() {
+// Type: Get with mempool
+// Description: Get Pending BTC Transactions and stored them in Array
+export async function getPendingBTCTransactionsMP(): Promise<string[]> {
   try {
     const {
       bitcoin: { addresses },
-    } = mempoolJS({
+    }: Pick<MempoolReturn, "bitcoin"> = mempoolJS({
       hostname: "mempool.space",
       network: "testnet",
     })
 
-    const address = btcVaultAddress
+    const address: string = btcVaultAddress
     const data = await addresses.getAddressTxsChain({ address })
-    console.log("getPendingBTCTransactions")
-    // console.log(data)
-    let txs = []
+
+    console.log("getPendingBTCTransactions") // TODO: Remove
+
+    let txs: string[] = []
     for (let i in data) {
       txs.push(data[i].txid)
     }
-    console.log("Found", data.length, "transactions")
-    return txs
+
+    console.log("Found", data.length, "transactions") // TODO: Remove
+
+    return txs ?? []
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
 
-export async function getBTCTransactionMP2(tx: string) {
+// Type: Get with mempool
+// Description: Get BTC Transaction by TX id
+export async function getBTCTransactionMP2(
+  tx: string
+): Promise<{ key: string | number | boolean } | {}> {
   try {
     const res = await fetch(btcAPI2 + "tx/" + tx, {
       //headers: {
-      //    'Authorization': 'Basic ' + btoa('x:8Al881pe8jSX'),
+      //    'Authorization': 'Basic ' + btoa('x:8Al881pe8jSX'), // TODO: Remove?
       //    'Content-Type': 'application/json',
       //},
       method: "GET",
     })
-    const data = await res.json()
-    return data
+
+    const data: { key: string | number | boolean } = await res.json()
+
+    return data ?? {}
   } catch (err) {
     console.log(err)
     console.log(tx)
-    return {}
   }
 }
 
-export async function getBTCTransaction(tx: string) {
+// Type: Get with mempool
+// Description: Get BTC Transaction by TX id
+export async function getBTCTransaction(
+  tx: string
+): Promise<{ key: string | number | boolean } | {}> {
   try {
     const res = await fetch(btcAPI2 + "tx/" + tx, {
       headers: {
@@ -197,10 +228,11 @@ export async function getBTCTransaction(tx: string) {
       },
       method: "GET",
     })
-    const data = await res.json()
-    return data
+
+    const data: { key: string | number | boolean } = await res.json()
+
+    return data ?? {}
   } catch (err) {
     console.log(err)
-    return {}
   }
 }
