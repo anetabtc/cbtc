@@ -1,17 +1,8 @@
 import sys
-import argparse
-import logging
-import multiprocessing
 import os
 import time
-from datetime import datetime, timedelta
-from decimal import ROUND_DOWN, Decimal
-from multiprocessing import Process
-from random import randint
-from time import sleep
 
 import pytz
-import requests
 import urllib3
 from pytz import timezone
 

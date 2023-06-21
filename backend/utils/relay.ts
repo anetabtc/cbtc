@@ -1,4 +1,4 @@
-import { Blockfrost, Lucid, Network } from "lucid-cardano"
+import { Network } from "lucid-cardano"
 import mempoolJS from "@mempool/mempool.js"
 
 const blockfrostKey = process.env.BLOCKFROST_KEY as string
@@ -151,11 +151,11 @@ export async function getPendingBTCTransactionsMP() {
     const {
       bitcoin: { addresses },
     } = mempoolJS({
-      hostname: 'mempool.space',
-      network: 'testnet'
+      hostname: "mempool.space",
+      network: "testnet",
     })
-  
-    const address = btcVaultAddress;
+
+    const address = btcVaultAddress
     const data = await addresses.getAddressTxsChain({ address })
     console.log("getPendingBTCTransactions")
     // console.log(data)

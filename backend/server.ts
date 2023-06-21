@@ -6,9 +6,7 @@ import {
   getPendingBTCTransactionsMP,
 } from "./utils/relay"
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
-// import { getBTCTransaction } from "./utils/relay"
-import { exec } from 'child_process';
-
+import { exec } from "child_process"
 
 import { btcVaultAddress } from "./utils/relay"
 import { getADATransaction } from "./utils/relay"
@@ -17,17 +15,10 @@ import * as utils from "./endpoints/utils"
 import * as user_request from "./endpoints/user.request"
 import { deployments } from "./endpoints/config.deployment"
 
-import {
-  ConfigFullFill,
-  ConfigMultiSig,
-  ConfigUpdateMultiSig,
-  DeployedScripts,
-} from "./endpoints/types"
-
-import fetch from "node-fetch"
+import { ConfigFullFill } from "./endpoints/types"
 
 import * as multisig_fullfill from "./endpoints/multisig.fullfill"
-import { stdout } from "process";
+import { stdout } from "process"
 
 interface Props {
   lucid: Lucid
@@ -232,7 +223,7 @@ let start_time = Math.floor(Date.now() / 1000)
 async function update_mint_queue() {
   // Step 1 Get all transactions using getPendingBTCTransactions
   let txs = await getPendingBTCTransactionsMP()
-  console.log(txs);
+  console.log(txs)
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
@@ -268,7 +259,7 @@ async function update_mint_queue() {
       }
 
       // Stop checking transaction if it is not new
-      if(tx.status.block_time != undefined){
+      if (tx.status.block_time != undefined) {
         mint_db.add(tx_id)
       }
     }
@@ -302,10 +293,9 @@ async function execute_mint(lucid: Lucid) {
     let amount = null
 
     for (let o of tx.vout) {
-      if (o.scriptpubkey_type == 'op_return') {
+      if (o.scriptpubkey_type == "op_return") {
         let op_return_hex = o.scriptpubkey_asm
-        OP_RETURN = Buffer.from(op_return_hex.substring(26), "hex")
-            .toString()
+        OP_RETURN = Buffer.from(op_return_hex.substring(26), "hex").toString()
       }
       if (o.scriptpubkey_address == btcVaultAddress) {
         amount = o.value
@@ -318,7 +308,8 @@ async function execute_mint(lucid: Lucid) {
       // bytes.fromhex(OP_TURN).decode('utf-8')[2:]
       let ada_addr = OP_RETURN
       if (ada_addr.startsWith("P")) {
-        ada_addr = "addr_test1vr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qvs5nqxxn" //ada_addr.slice(1)
+        ada_addr =
+          "addr_test1vr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qvs5nqxxn" //ada_addr.slice(1)
         console.log("Slicing first char")
         console.log(ada_addr)
       }
@@ -423,18 +414,18 @@ async function RedeemAPI(
   console.log("Sending Redeem with params:")
   console.log(params)
   var password = "password"
-  const command = `python redeem.py ${sender_addr} ${amount} ${receiver_addr} ${password}`; // Replace with your own command
+  const command = `python redeem.py ${sender_addr} ${amount} ${receiver_addr} ${password}` // Replace with your own command
   exec(command, (error, stdout, stderr) => {
     if (error) {
-      console.error(`Error running command: ${error.message}`);
-      return;
+      console.error(`Error running command: ${error.message}`)
+      return
     }
     if (stderr) {
-      console.error(`Command stderr: ${stderr}`);
-      return;
+      console.error(`Command stderr: ${stderr}`)
+      return
     }
-    console.log(`Command stdout: ${stdout}`);
-  });
+    console.log(`Command stdout: ${stdout}`)
+  })
   return stdout
 }
 
