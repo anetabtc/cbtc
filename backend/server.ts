@@ -8,7 +8,6 @@ import {
 import { getPendingADATransactionsToPolicy } from "./utils/relay"
 import { exec } from "child_process"
 
-import { btcVaultAddress } from "./utils/relay"
 import { getADATransaction } from "./utils/relay"
 
 import * as utils from "./endpoints/utils"
@@ -20,9 +19,12 @@ import { ConfigFullFill } from "./endpoints/types"
 import * as multisig_fullfill from "./endpoints/multisig.fullfill"
 import { stdout } from "process"
 
-interface Props {
+type Props = {
   lucid: Lucid
 }
+
+// Enviroment Variables
+const btcVaultAddress = process.env.VAULT_BTC_WALLET_ADDRESS
 
 // Accounts generated with utils.generateAddressSeedPhrase()
 // These account have StakingCredential
@@ -227,7 +229,7 @@ async function update_mint_queue() {
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
-    let tx_id = txs[i as keyof typeof txs]
+    let tx_id: IterableIterator<string | number> = txs[i as keyof typeof txs]
     if (!mint_db.has(tx_id)) {
       let tx: any = await getBTCTransactionMP(tx_id)
       //console.log(tx); // temp
@@ -266,7 +268,7 @@ async function update_mint_queue() {
   }
 
   console.log(mint_queue.length)
-  txs = {}
+  txs = []
 }
 
 async function mint(lucid: Lucid) {
