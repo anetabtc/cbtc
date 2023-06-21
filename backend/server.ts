@@ -14,16 +14,21 @@ import * as utils from "./endpoints/utils"
 import * as user_request from "./endpoints/user.request"
 import { deployments } from "./endpoints/config.deployment"
 
-import { ConfigFullFill } from "./endpoints/types"
+import {
+  ADATransaction,
+  BTCTransaction,
+  ConfigFullFill,
+} from "./endpoints/types"
 
 import * as multisig_fullfill from "./endpoints/multisig.fullfill"
 import { stdout } from "process"
+import { Tx } from "lucid-cardano"
 
 type Props = {
   lucid: Lucid
 }
 
-// Enviroment Variables
+// Environment Variables
 const btcVaultAddress = process.env.VAULT_BTC_WALLET_ADDRESS
 
 // Accounts generated with utils.generateAddressSeedPhrase()
@@ -91,7 +96,7 @@ export const request = async (
   const myAddress = ada_addr
   const bridgeAmount = amount
   const btcAddress = btc_addr
-  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
+  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`) // TODO: Remove
   const result = await user_request.submit(
     lucid,
     bridgeAmount,
@@ -164,43 +169,43 @@ export const fullfil = async (lucid: Lucid) => {
     [witness1, witness2, witness3]
   )
 
-  console.log(assembleTx)
+  console.log(assembleTx) //  TODO: Remove?
   return true
 }
 
 // const CryptoAccount = require("send-crypto");
 
-export const sendBitcoin = async (
-  recieverAddress: string,
-  amountToSend: number
-) => {
-  // /* Load account from private key */
-  // const privateKey = process.env.PRIVATE_KEY || CryptoAccount.newPrivateKey();
-  // const account = new CryptoAccount(privateKey, {
-  // 	network: "testnet",
-  // });
-  // console.log("secret:")
-  // console.log(privateKey);
+// export const sendBitcoin = async (
+//   recieverAddress: string,
+//   amountToSend: number
+// ) => {
+// /* Load account from private key */
+// const privateKey = process.env.PRIVATE_KEY || CryptoAccount.newPrivateKey();
+// const account = new CryptoAccount(privateKey, {
+// 	network: "testnet",
+// });
+// console.log("secret:")
+// console.log(privateKey);
 
-  // /* Print address */
-  // console.log(await account.address("BTC"));
-  // // > "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+// /* Print address */
+// console.log(await account.address("BTC"));
+// // > "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
 
-  // /* Print balance */
-  // console.log(await account.getBalance("BTC"));
-  // // > 0.01
+// /* Print balance */
+// console.log(await account.getBalance("BTC"));
+// // > 0.01
 
-  // /* Send 0.01 BTC */
-  // const txHash = await account
-  // 	.send(recieverAddress, amountToSend, "BTC")
-  // 	.on("transactionHash", console.log)
-  // 	// > "3387418aaddb4927209c5032f515aa442a6587d6e54677f08a03b8fa7789e688"
-  // 	.on("confirmation", console.log);
-  // // > 1
-  // // > 2 ...
+// /* Send 0.01 BTC */
+// const txHash = await account
+// 	.send(recieverAddress, amountToSend, "BTC")
+// 	.on("transactionHash", console.log)
+// 	// > "3387418aaddb4927209c5032f515aa442a6587d6e54677f08a03b8fa7789e688"
+// 	.on("confirmation", console.log);
+// // > 1
+// // > 2 ...
 
-  console.log("sending BTC")
-}
+//   console.log("sending BTC")
+// }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -222,16 +227,16 @@ let epoch_delay = 20000 // ms
 // Start Time.
 let start_time = Math.floor(Date.now() / 1000)
 
-async function update_mint_queue() {
+const update_mint_queue = async () => {
   // Step 1 Get all transactions using getPendingBTCTransactions
-  let txs = await getPendingBTCTransactionsMP()
+  let txs: string[] = await getPendingBTCTransactionsMP()
   console.log(txs)
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
-    let tx_id: IterableIterator<string | number> = txs[i as keyof typeof txs]
+    let tx_id = txs[i as keyof typeof txs].toString
     if (!mint_db.has(tx_id)) {
-      let tx: any = await getBTCTransactionMP(tx_id)
+      let tx: BTCTransaction = await getBTCTransactionMP(tx_id.toString())
       //console.log(tx); // temp
       // Check if tx is going to our vault
       let is_incoming = false
@@ -271,7 +276,7 @@ async function update_mint_queue() {
   txs = []
 }
 
-async function mint(lucid: Lucid) {
+const mint = async (lucid: Lucid) => {
   // Step 4 runSimulator.fulfill(lucid)
   // await runSimulator.fullfil(lucid);
   let result = await fullfil(lucid)
@@ -279,7 +284,7 @@ async function mint(lucid: Lucid) {
   return true
 }
 
-async function execute_mint(lucid: Lucid) {
+const execute_mint = async (lucid: Lucid) => {
   if (mint_queue.length > 0) {
     // Step 1 Pop next transaction in mint_queue
     let tx_id = mint_queue.shift()
@@ -340,7 +345,7 @@ async function execute_mint(lucid: Lucid) {
   return true
 }
 
-async function update_redeem_queue() {
+const update_redeem_queue = async () => {
   // Step 1 Get all transactions using getPendingADATransactions
   let txs = await getPendingADATransactionsToPolicy().then((res) => {
     return res
@@ -355,7 +360,7 @@ async function update_redeem_queue() {
     }
     let tx = await getADATransactionUTXOs(tx_id)
     //console.log(tx);
-    let tx_data = await getADATransaction(tx_id)
+    let tx_data: ADATransaction = await getADATransaction(tx_id)
     // Check if tx is going to our smart contract
     let is_incoming = false
     // for(let o in tx.outputs){
@@ -392,22 +397,23 @@ async function update_redeem_queue() {
   console.log(redeem_queue.length)
 }
 
-function redeem(btc_addr: string, amount: number) {
-  // Step 3 Send BTC back to user
-  try {
-    sendBitcoin(btc_addr, amount)
-  } catch (error) {
-    console.error(error)
-    return false
-  }
-  return true
-}
+// TODO: Remove? It's not used
+// function redeem(btc_addr: string, amount: number) {
+//   // Step 3 Send BTC back to user
+//   try {
+//     sendBitcoin(btc_addr, amount)
+//   } catch (error) {
+//     console.error(error)
+//     return false
+//   }
+//   return true
+// }
 
-async function RedeemAPI(
+const RedeemAPI = async (
   sender_addr: string,
   amount: string,
   receiver_addr: string
-): Promise<{ [key: string]: any }> {
+): Promise<{ [key: string]: any }> => {
   const params = {
     sender_addr: sender_addr,
     amount: amount,
@@ -431,7 +437,7 @@ async function RedeemAPI(
   return stdout
 }
 
-async function execute_redeem() {
+const execute_redeem = async () => {
   if (redeem_queue.length > 0) {
     // Step 1 Pop next transaction in redeem_queue
     let tx_amount_pair = redeem_queue.shift()
@@ -444,6 +450,8 @@ async function execute_redeem() {
     let metadata = await getADATransactionMetadata(tx)
     let receiver_addr = metadata[0].json_metadata.btcAddress
     let tx_data = await getADATransactionUTXOs(tx)
+
+    // TODO: Only for test. Remove after
     console.log(receiver_addr)
     console.log(tx_data)
     console.log(amount)
@@ -469,7 +477,7 @@ async function execute_redeem() {
   return true
 }
 
-function Run({ lucid }: Props) {
+const Run = ({ lucid }: Props) => {
   ;(async () => {
     let epoch = 0
     while (true) {
@@ -479,6 +487,8 @@ function Run({ lucid }: Props) {
       let ada_addr =
         "addr1q893h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8s28a4xf" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
       let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
+
+      // TODO: Only for testing. Remove after
       console.log(paymentCreds.hash)
       console.log(lucid.utils.credentialToAddress(paymentCreds))
       console.log("TEST")

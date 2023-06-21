@@ -1,6 +1,7 @@
-import { Network } from "lucid-cardano"
+import { Network, Tx } from "lucid-cardano"
 import mempoolJS from "@mempool/mempool.js"
 import { MempoolReturn } from "@mempool/mempool.js/lib/interfaces/index"
+import { ADATransaction, ADATransactionMetaData } from "../endpoints/types"
 
 // Environment Variables
 const blockfrostKey = process.env.BLOCKFROST_KEY as string
@@ -96,9 +97,9 @@ export const getADATransaction = async (tx: string) => {
       method: "GET",
     })
 
-    let data: { key: string | number | boolean } = await res.json()
+    let data: ADATransaction = await res.json()
 
-    return data ?? {}
+    return data
   } catch (err) {
     console.log(err)
   }
@@ -136,9 +137,9 @@ export const getADATransactionMetadata = async (tx: string) => {
       method: "GET",
     })
 
-    let data: { key: string | number | boolean } = await res.json()
+    let data: ADATransactionMetaData[] = await res.json()
 
-    return data ?? {}
+    return data
   } catch (err) {
     console.log(err)
   }
@@ -146,9 +147,7 @@ export const getADATransactionMetadata = async (tx: string) => {
 
 // Type: Get with mempool
 // Description: Get BTC Transaction by TX id
-export const getBTCTransactionMP = async (
-  txid: string
-): Promise<{ key: string | number | boolean } | {}> => {
+export const getBTCTransactionMP = async (txid: string) => {
   try {
     const {
       bitcoin: { transactions },
@@ -159,7 +158,7 @@ export const getBTCTransactionMP = async (
 
     const tx = await transactions.getTx({ txid })
 
-    return tx ?? {}
+    return tx
   } catch (err) {
     console.log(err)
   }
@@ -167,7 +166,7 @@ export const getBTCTransactionMP = async (
 
 // Type: Get with mempool
 // Description: Get Pending BTC Transactions and stored them in Array
-export const getPendingBTCTransactionsMP = async (): Promise<string[]> => {
+export const getPendingBTCTransactionsMP = async (): Promise<string[] | []> => {
   try {
     const {
       bitcoin: { addresses },
