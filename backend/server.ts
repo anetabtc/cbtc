@@ -22,7 +22,6 @@ import {
 
 import * as multisig_fullfill from "./endpoints/multisig.fullfill"
 import { stdout } from "process"
-import { Tx } from "lucid-cardano"
 
 type Props = {
   lucid: Lucid
@@ -212,21 +211,16 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 // Internal queue to keep track of pending orders.
 let mint_queue = new Array()
 let redeem_queue = new Array()
-let mint_queue_time = {}
-let redeem_queue_time = {}
 
 // Internal database of done transactions.
 let mint_db = new Set()
-let mint_finished = new Set()
 let redeem_db = new Set()
-let redeem_finished = new Set()
 
 // Time delayed between each check.
 let epoch_delay = 20000 // ms
 
 // Start Time.
 let start_time = Math.floor(Date.now() / 1000)
-
 const update_mint_queue = async () => {
   // Step 1 Get all transactions using getPendingBTCTransactions
   let txs: string[] = await getPendingBTCTransactionsMP()
@@ -234,10 +228,11 @@ const update_mint_queue = async () => {
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
-    let tx_id = txs[i as keyof typeof txs].toString
+    let tx_id = txs[i as keyof typeof txs]
     if (!mint_db.has(tx_id)) {
-      let tx: BTCTransaction = await getBTCTransactionMP(tx_id.toString())
-      //console.log(tx); // temp
+      
+      let tx: BTCTransaction = await getBTCTransactionMP(tx_id)
+    
       // Check if tx is going to our vault
       let is_incoming = false
 
@@ -299,15 +294,18 @@ const execute_mint = async (lucid: Lucid) => {
     let OP_RETURN = null
     let amount = null
 
-    for (let o of tx.vout) {
-      if (o.scriptpubkey_type == "op_return") {
-        let op_return_hex = o.scriptpubkey_asm
-        OP_RETURN = Buffer.from(op_return_hex.substring(26), "hex").toString()
-      }
-      if (o.scriptpubkey_address == btcVaultAddress) {
-        amount = o.value
+    if(tx.vout && tx.vout.length) {
+      for (let o of tx.vout) {
+        if (o.scriptpubkey_type == "op_return") {
+          let op_return_hex = o.scriptpubkey_asm
+          OP_RETURN = Buffer.from(op_return_hex.substring(26), "hex").toString()
+        }
+        if (o.scriptpubkey_address == btcVaultAddress) {
+          amount = o.value
+        }
       }
     }
+   
 
     // Step 2 Verify BTC transaction is good
     if (OP_RETURN != null && amount != null && btc_addr != null) {
@@ -457,6 +455,7 @@ const execute_redeem = async () => {
     console.log(amount)
 
     const sender_addr = btcVaultAddress
+    // TODO: Remove
     // const amount = "20000"
     // const receiver_addr = "2Mvv9VrwFYWFGz18tQ8E6EZ6SKf2Dhm6htK"
 
@@ -481,6 +480,7 @@ const Run = ({ lucid }: Props) => {
   ;(async () => {
     let epoch = 0
     while (true) {
+      // TODO: Remove
       //console.log("TEST");
       // TODO - Print to user
       console.log("Willie:")
@@ -549,5 +549,4 @@ const MainServer = async () => {
   Run({ lucid })
 }
 
-//export default MainServer;
 MainServer()

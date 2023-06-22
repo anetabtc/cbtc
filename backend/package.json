@@ -10,6 +10,6 @@
     "@types/node": "^20.2.5"
   },
   "scripts": {
-    "start": "npx ts-node server.ts"
+    "start": "nodemon server.ts"
   }
 }

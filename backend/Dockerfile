@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN  npm install
 RUN  npm install @mempool/mempool.js --save
+RUN npm install nodemon
 
 ####### BUILDER - node #######
 FROM node:18-alpine3.18 AS builder
