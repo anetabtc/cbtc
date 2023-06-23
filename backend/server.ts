@@ -313,8 +313,7 @@ const execute_mint = async (lucid: Lucid) => {
       // bytes.fromhex(OP_TURN).decode('utf-8')[2:]
       let ada_addr = OP_RETURN
       if (ada_addr.startsWith("P")) {
-        ada_addr =
-          "addr_test1vr93h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qvs5nqxxn" //ada_addr.slice(1)
+        ada_addr = ada_addr.slice(1)
         console.log("Slicing first char")
         console.log(ada_addr)
       }
@@ -480,18 +479,18 @@ const Run = ({ lucid }: Props) => {
   ;(async () => {
     let epoch = 0
     while (true) {
-      // TODO: Remove
-      //console.log("TEST");
-      // TODO - Print to user
-      console.log("Willie:")
-      let ada_addr =
-        "addr1q893h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8s28a4xf" //"addr_test1qqxm6xdfgy9700tal3je94s7eqeusu08cku0rkvmsqkldytj60xr5crz6tmy995kskqtgukfhjearmcejld8z0wzsegqkp23xu"
-      let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
+      // // TODO: Remove
+      // //console.log("TEST");
+      // // TODO - Print to user
+      // console.log("Willie:")
+      // let ada_addr =
+      //   "addr1q893h9esl962tww08u0q4nv7hd6w9cr6vg2q5aqvkw05qv436ujy2pp7syywu3u53zlutqhsg8gw8nrrxukl2eg27v8s28a4xf"
+      // let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
 
-      // TODO: Only for testing. Remove after
-      console.log(paymentCreds.hash)
-      console.log(lucid.utils.credentialToAddress(paymentCreds))
-      console.log("TEST")
+      // // TODO: Only for testing. Remove after
+      // console.log(paymentCreds.hash)
+      // console.log(lucid.utils.credentialToAddress(paymentCreds))
+      // console.log("TEST")
 
       if (epoch >= 1) {
         // TODO production: change to 5
@@ -548,5 +547,10 @@ const MainServer = async () => {
 
   Run({ lucid })
 }
+
+console.log("\n\nCRITICAL Startup Time Check:", start_time);
+console.log("\nhttps://www.unixtimestamp.com/")
+console.log("\nhttps://helloacm.com/api/unix-timestamp-converter/?cached&s=" + start_time.toString())
+console.log("\nIf time is incorrect please check settings and restart...\n\n\n");
 
 MainServer()
