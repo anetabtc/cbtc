@@ -230,9 +230,8 @@ const update_mint_queue = async () => {
   for (let i in txs) {
     let tx_id = txs[i as keyof typeof txs]
     if (!mint_db.has(tx_id)) {
-      
       let tx: BTCTransaction = await getBTCTransactionMP(tx_id)
-    
+
       // Check if tx is going to our vault
       let is_incoming = false
 
@@ -274,9 +273,13 @@ const update_mint_queue = async () => {
 const mint = async (lucid: Lucid) => {
   // Step 4 runSimulator.fulfill(lucid)
   // await runSimulator.fullfil(lucid);
-  let result = await fullfil(lucid)
-  console.log(result)
-  return true
+  try {
+    let result = await fullfil(lucid)
+    console.log(result)
+    return !!result ? true : false
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 const execute_mint = async (lucid: Lucid) => {
@@ -294,7 +297,7 @@ const execute_mint = async (lucid: Lucid) => {
     let OP_RETURN = null
     let amount = null
 
-    if(tx.vout && tx.vout.length) {
+    if (tx.vout && tx.vout.length) {
       for (let o of tx.vout) {
         if (o.scriptpubkey_type == "op_return") {
           let op_return_hex = o.scriptpubkey_asm
@@ -305,7 +308,6 @@ const execute_mint = async (lucid: Lucid) => {
         }
       }
     }
-   
 
     // Step 2 Verify BTC transaction is good
     if (OP_RETURN != null && amount != null && btc_addr != null) {
@@ -465,10 +467,11 @@ const execute_redeem = async () => {
     )
     console.log("Result:")
     console.log(result_str)
-    if (result_str["response"].includes("True")) {
-      return true
+    if (!!result_str && !!result_str["response"]) {
+      if (result_str["response"].includes("True")) {
+        return true
+      }
     }
-
     // Step 4 if failed log and requeue
     return false
   }
@@ -548,9 +551,12 @@ const MainServer = async () => {
   Run({ lucid })
 }
 
-console.log("\n\nCRITICAL Startup Time Check:", start_time);
+console.log("\n\nCRITICAL Startup Time Check:", start_time)
 console.log("\nhttps://www.unixtimestamp.com/")
-console.log("\nhttps://helloacm.com/api/unix-timestamp-converter/?cached&s=" + start_time.toString())
-console.log("\nIf time is incorrect please check settings and restart...\n\n\n");
+console.log(
+  "\nhttps://helloacm.com/api/unix-timestamp-converter/?cached&s=" +
+    start_time.toString()
+)
+console.log("\nIf time is incorrect please check settings and restart...\n\n\n")
 
 MainServer()
