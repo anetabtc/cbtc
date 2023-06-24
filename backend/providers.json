@@ -1,0 +1,13 @@
+{
+  "mempool.testnet": {
+    "provider": "mempool",
+    "network": "testnet",
+    "client_class": "MempoolClient",
+    "provider_coin_id": "",
+    "url": "https://mempool.space/testnet/api/",
+    "api_key": "",
+    "priority": 10,
+    "denominator": 1,
+    "network_overrides": null
+  }
+}

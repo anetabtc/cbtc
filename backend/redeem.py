@@ -27,7 +27,7 @@ DB_URI = os.getenv('DB_URI')
 
 for VAR in [
         VAULT_BTC_WALLET_ADDRESS, VAULT_BTC_WALLET_ID,
-        VAULT_BTC_WALLET_MNEMONIC
+        VAULT_BTC_WALLET_MNEMONIC, DB_URI
 ]:
     if VAR is None:
         raise Exception("Important ENV Variable was not found")
@@ -39,8 +39,13 @@ EST_TZ = timezone('US/Eastern')
 
 w = wallet_create_or_open(VAULT_BTC_WALLET_ID,
                             keys=VAULT_BTC_WALLET_MNEMONIC,
-                            network='testnet')
-w.scan()
+                            network='testnet',
+                            witness_type='segwit',
+                            scheme='single',
+                            account_id=0,
+                            db_uri=DB_URI)
+
+w.scan(rescan_used=True)
 
 MAX_TIMESTEPS = 2
 REQUEST_RATE = 300  # sec

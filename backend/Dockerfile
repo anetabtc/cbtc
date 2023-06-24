@@ -35,23 +35,9 @@ run pip install --target=/app/.py -r requirements.txt
 FROM node:18-alpine3.18 AS runner
 WORKDIR /app
 
-### TODO: MOVE THIS TO ENV FILE... -_\
-
-ENV VAULT_BTC_WALLET_ADDRESS="mwnCUR6TU9WRosy5gLFgNJMkssJ1XXHXpc"
-ENV VAULT_BTC_WALLET_ID="AnetaTestnetBTCWallet3"
-ENV VAULT_BTC_WALLET_MNEMONIC="notice carry sad utility gas spy vital yellow old test present vague"
-
-# This is currently not being used for testing, but needs to be implemented for reliability / performance.
-ENV DB_URI="postgresql://bitcoinlib:SUPERSECRETPASSHERE@172.17.0.1:5432/bitcoinlib"
-
-ENV BLOCKFROST_KEY "preprodZ5sdrHtIciQKn3Ls3phRfCkqtVyFq5XX"
-ENV API_URL "https://cardano-preprod.blockfrost.io/api/v0"
-ENV NETWORK "Preprod"
-ENV MINT_POLICY_ID = "2c04fa26b36a376440b0615a7cdf1a0c2df061df89c8c055e265050563425443"
-
 ###
 
-RUN apk add --no-cache tzdata openblas gmp-dev python3=~3.11
+RUN apk add --no-cache libpq tzdata openblas gmp-dev python3=~3.11
 
 ENV TZ="America/New_York"
 RUN cp /usr/share/zoneinfo/America/New_York /etc/localtime
@@ -64,8 +50,8 @@ ENV NODE_ENV production
 ENV PATH=/app/.py/bin:$PATH
 ENV PYTHONPATH="${PYTHONPATH}:/app/.py"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+#RUN addgroup --system --gid 1001 nodejs
+#RUN adduser --system --uid 1001 nextjs
 
 # Install TypeScript stuff
 RUN npm i ts-node
@@ -89,6 +75,9 @@ COPY --from=builder /app/endpoints ./endpoints
 
 COPY --from=builder /app/redeem.py ./redeem.py
 COPY --from=builder2 /app/.py /app/.py
+
+COPY --from=builder /app/config.ini /app/.py/bitcoinlib/data/
+COPY --from=builder /app/providers.json /app/.py/bitcoinlib/data/
 
 # USER nextjs
 
