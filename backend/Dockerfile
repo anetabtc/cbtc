@@ -29,17 +29,11 @@ RUN apk add --no-cache \
 ADD ./requirements.txt /app/requirements.txt
 
 # install deps into /app/.py directory
-run pip install --target=/app/.py -r requirements.txt
+RUN pip install --target=/app/.py -r requirements.txt
 
 ####### RUNNER #######
 FROM node:18-alpine3.18 AS runner
 WORKDIR /app
-
-### TODO: MOVE THIS TO ENV FILE... -_\
-
-ENV VAULT_BTC_WALLET_ADDRESS="mwnCUR6TU9WRosy5gLFgNJMkssJ1XXHXpc"
-ENV VAULT_BTC_WALLET_ID="AnetaTestnetBTCWallet3"
-ENV VAULT_BTC_WALLET_MNEMONIC="notice carry sad utility gas spy vital yellow old test present vague"
 
 # This is currently not being used for testing, but needs to be implemented for reliability / performance.
 ENV DB_URI="postgresql://bitcoinlib:SUPERSECRETPASSHERE@172.17.0.1:5432/bitcoinlib"
