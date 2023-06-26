@@ -466,8 +466,8 @@ const Run = ({ lucid }: Props) => {
         // Read Minting Requests and Add to Queue
         try {
           await update_mint_queue();
-        } catch (err) {
-          console.log(err);
+        } catch (error) {
+          console.log(error);
         }
 
         epoch = 0;
@@ -476,30 +476,30 @@ const Run = ({ lucid }: Props) => {
       // Pop and Try to Complete Next Minting Request
       try {
         execute_mint(lucid);
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
 
       /// Mint Outstanding orders
       try {
         await mint(lucid);
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
       ///
 
       // Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
       try {
         await update_redeem_queue();
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
       // Pop and Try to Complete Next Redeem Request
       for (let i = 0; i < 2; i++) {
         try {
           let result = await execute_redeem();
-        } catch (err) {
-          console.log(err);
+        } catch (error) {
+          console.log(error);
         }
       }
 
