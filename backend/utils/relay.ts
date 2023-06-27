@@ -79,6 +79,7 @@ export const getPendingBTCTransactions = async () => {
     for (let i in data) {
       txs.push(data[i].txid);
     }
+    console.log("getPendingBTCTransactions")
     return txs ?? [];
   } catch (error) {
     console.log(error);
