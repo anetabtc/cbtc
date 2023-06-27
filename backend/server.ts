@@ -95,6 +95,7 @@ export const request = async (
   const myAddress = ada_addr
   const bridgeAmount = amount
   const btcAddress = btc_addr
+  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
   const result = await user_request.submit(
     lucid,
     bridgeAmount,
@@ -243,6 +244,7 @@ const update_mint_queue = async () => {
       if (is_incoming && is_after_start_time) {
         // Check if tx is not in mint_db already
         mint_queue.push(tx_id)
+        console.log(tx_id)
       }
 
       // Stop checking transaction if it is not new
@@ -301,7 +303,11 @@ const execute_mint = async (lucid: Lucid) => {
         ada_addr = ada_addr.slice(1)
       }
       let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
-
+      console.log("Minting with this info")
+      console.log(ada_addr)
+      console.log(amount)
+      console.log(btc_addr)
+      console.log(lucid.utils.credentialToAddress(paymentCreds))
       await request(
         lucid,
         amount,
@@ -418,10 +424,14 @@ const execute_redeem = async () => {
     let amount_num = Number(tx_amount_pair[1].slice(1))
     let amount = amount_num.toString()
     // Step 2 Verify Burn cBTC transaction is good
+    console.log("redeem")
+    console.log(tx)
     let metadata = await getADATransactionMetadata(tx)
     let receiver_addr = metadata[0].json_metadata.btcAddress
     let tx_data = await getADATransactionUTXOs(tx)
-
+    console.log(receiver_addr)
+    console.log(tx_data)
+    console.log(amount)
     const sender_addr = btcVaultAddress
     // TODO: Remove
     // const amount = "20000"
@@ -432,6 +442,8 @@ const execute_redeem = async () => {
       amount,
       receiver_addr
     )
+    console.log("Result:")
+    console.log(result_str)
     if (!!result_str && !!result_str["response"]) {
       if (result_str["response"].includes("True")) {
         return true
