@@ -95,7 +95,7 @@ export const request = async (
   const myAddress = ada_addr
   const bridgeAmount = amount
   const btcAddress = btc_addr
-  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`) // TODO: Remove
+  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
   const result = await user_request.submit(
     lucid,
     bridgeAmount,
@@ -103,7 +103,6 @@ export const request = async (
     btcAddress,
     deployments.scripts.guardianValidator
   )
-  console.log(result)
 }
 
 // Fullfill requests from users
@@ -127,10 +126,8 @@ export const fullfil = async (lucid: Lucid) => {
   )
   if (!validDatumUtxoList?.length) {
     console.log("No valid datums at Guardian Script")
-    console.log("validDatumUtxoList: ", validDatumUtxoList)
     return null
   }
-  console.log("validDatumUtxoList: ", validDatumUtxoList)
 
   if (validDatumUtxoList.length == 0) {
     return null
@@ -167,8 +164,6 @@ export const fullfil = async (lucid: Lucid) => {
     fulfillTx.toString(),
     [witness1, witness2, witness3]
   )
-
-  console.log(assembleTx) //  TODO: Remove?
   return true
 }
 
@@ -224,7 +219,6 @@ let start_time = Math.floor(Date.now() / 1000)
 const update_mint_queue = async () => {
   // Step 1 Get all transactions using getPendingBTCTransactions
   let txs: string[] = await getPendingBTCTransactionsMP()
-  console.log(txs)
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to mint_queue the ones not in db and add them to db
   for (let i in txs) {
@@ -247,12 +241,6 @@ const update_mint_queue = async () => {
         is_after_start_time = true
       }
 
-      console.log(tx)
-      console.log(is_incoming)
-      console.log(is_after_start_time)
-      console.log(tx.status.block_time)
-      console.log(start_time)
-
       if (is_incoming && is_after_start_time) {
         // Check if tx is not in mint_db already
         mint_queue.push(tx_id)
@@ -265,8 +253,6 @@ const update_mint_queue = async () => {
       }
     }
   }
-
-  console.log(mint_queue.length)
   txs = []
 }
 
@@ -275,10 +261,9 @@ const mint = async (lucid: Lucid) => {
   // await runSimulator.fullfil(lucid);
   try {
     let result = await fullfil(lucid)
-    console.log(result)
     return !!result ? true : false
-  } catch (err) {
-    console.log(err)
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -316,17 +301,13 @@ const execute_mint = async (lucid: Lucid) => {
       let ada_addr = OP_RETURN
       if (ada_addr.startsWith("P")) {
         ada_addr = ada_addr.slice(1)
-        console.log("Slicing first char")
-        console.log(ada_addr)
       }
       let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
-
       console.log("Minting with this info")
       console.log(ada_addr)
       console.log(amount)
       console.log(btc_addr)
       console.log(lucid.utils.credentialToAddress(paymentCreds))
-
       await request(
         lucid,
         amount,
@@ -351,49 +332,48 @@ const update_redeem_queue = async () => {
   })
   // Step 2 Check time (after server start) and direction (incoming)
   // Step 3 Add to redeem_queue the ones not in db and add them to db
-  for (let i in txs) {
-    let tx_id = txs[i as keyof typeof txs]["tx_hash"] // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
-    let amount = txs[i as keyof typeof txs]["amount"]
-    if (redeem_db.has(tx_id)) {
-      continue
-    }
-    let tx = await getADATransactionUTXOs(tx_id)
-    //console.log(tx);
-    let tx_data: ADATransaction = await getADATransaction(tx_id)
-    // Check if tx is going to our smart contract
-    let is_incoming = false
-    // for(let o in tx.outputs){
-    // 	if(tx.outputs[o].address == mintPolicyAddress){
-    // 		is_incoming = true;
-    // 		for(let itx in tx.inuts){
-    // 			if(tx.inputs[itx].address == mintPolicyAddress){
-    // 				is_incoming = false;
-    // 			}
-    // 		}
-    // 	}
-    // }
-    if (txs[i as keyof typeof txs]["action"] == "burned") {
-      is_incoming = true
-    }
+  if (txs) {
+    for (let i in txs) {
+      let tx_id = txs[i as keyof typeof txs]["tx_hash"] // "ffa3f3263803c64ea350c2eabd065072b012c3018951edafd9ee276cb5aa2b0c"
+      let amount = txs[i as keyof typeof txs]["amount"]
+      if (redeem_db.has(tx_id)) {
+        continue
+      }
+      let tx = await getADATransactionUTXOs(tx_id)
+      let tx_data: ADATransaction = await getADATransaction(tx_id)
+      // Check if tx is going to our smart contract
+      let is_incoming = false
+      // for(let o in tx.outputs){
+      // 	if(tx.outputs[o].address == mintPolicyAddress){
+      // 		is_incoming = true;
+      // 		for(let itx in tx.inuts){
+      // 			if(tx.inputs[itx].address == mintPolicyAddress){
+      // 				is_incoming = false;
+      // 			}
+      // 		}
+      // 	}
+      // }
+      if (txs[i as keyof typeof txs]["action"] == "burned") {
+        is_incoming = true
+      }
 
-    // Check if tx is after server start time
-    let is_after_start_time = false
-    if (tx_data.block_time > start_time) {
-      is_after_start_time = true
-    }
-    if (is_incoming && is_after_start_time) {
-      let metadata = await getADATransactionMetadata(tx_id)
-      if (metadata.length != 0) {
-        // Check if tx is not in redeem_db already
-        if (!redeem_db.has(tx_id)) {
-          redeem_queue.push([tx_id, amount])
-          redeem_db.add(tx_id)
+      // Check if tx is after server start time
+      let is_after_start_time = false
+      if (tx_data.block_time > start_time) {
+        is_after_start_time = true
+      }
+      if (is_incoming && is_after_start_time) {
+        let metadata = await getADATransactionMetadata(tx_id)
+        if (metadata.length != 0) {
+          // Check if tx is not in redeem_db already
+          if (!redeem_db.has(tx_id)) {
+            redeem_queue.push([tx_id, amount])
+            redeem_db.add(tx_id)
+          }
         }
       }
     }
   }
-
-  console.log(redeem_queue.length)
 }
 
 // TODO: Remove? It's not used
@@ -449,12 +429,9 @@ const execute_redeem = async () => {
     let metadata = await getADATransactionMetadata(tx)
     let receiver_addr = metadata[0].json_metadata.btcAddress
     let tx_data = await getADATransactionUTXOs(tx)
-
-    // TODO: Only for test. Remove after
     console.log(receiver_addr)
     console.log(tx_data)
     console.log(amount)
-
     const sender_addr = btcVaultAddress
     // TODO: Remove
     // const amount = "20000"
@@ -500,8 +477,8 @@ const Run = ({ lucid }: Props) => {
         // Read Minting Requests and Add to Queue
         try {
           await update_mint_queue()
-        } catch (err) {
-          console.log(err)
+        } catch (error) {
+          console.log(error)
         }
 
         epoch = 0
@@ -510,30 +487,30 @@ const Run = ({ lucid }: Props) => {
       // Pop and Try to Complete Next Minting Request
       try {
         execute_mint(lucid)
-      } catch (err) {
-        console.log(err)
+      } catch (error) {
+        console.log(error)
       }
 
       /// Mint Outstanding orders
       try {
         await mint(lucid)
-      } catch (err) {
-        console.log(err)
+      } catch (error) {
+        console.log(error)
       }
       ///
 
       // Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
       try {
         await update_redeem_queue()
-      } catch (err) {
-        console.log(err)
+      } catch (error) {
+        console.log(error)
       }
       // Pop and Try to Complete Next Redeem Request
       for (let i = 0; i < 2; i++) {
         try {
           let result = await execute_redeem()
-        } catch (err) {
-          console.log(err)
+        } catch (error) {
+          console.log(error)
         }
       }
 
