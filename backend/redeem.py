@@ -12,7 +12,7 @@ from bitcoinlib.wallets import wallet_create_or_open
 assert len(sys.argv) == 5
 assert sys.argv[4] == "password"
 
-print("Running redeem.py")
+print("PYTHON:", "Running redeem.py")
 
 sender_addr = sys.argv[1]
 amount = float(sys.argv[2])
@@ -31,7 +31,7 @@ for VAR in [
 ]:
     if VAR is None:
         raise Exception("Important ENV Variable was not found")
-print("Succesfully loaded ENV vars.")
+print("PYTHON:", "Succesfully loaded ENV vars.")
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 UTC_TZ = pytz.utc
@@ -75,20 +75,20 @@ def redeem(btc_wallet_addr, amount):  # pragma: no cover
                                   fee=2000,
                                   offline=False)
                 if tx_id:
-                    print("Success")
-                    print("tx_id:", tx_id)
-                    print("amount:", amount)
+                    print("PYTHON:", "Success")
+                    print("PYTHON:", "tx_id:", tx_id)
+                    print("PYTHON:", "amount:", amount)
                     return True
                 time.sleep(REQUEST_RATE)
                 t += 1
         except Exception as e:
             print(
-                f"Failed to send from {VAULT_BTC_WALLET_ADDRESS} to {btc_wallet_addr} amount {amount}"
+                f"ERROR: Failed to send from {VAULT_BTC_WALLET_ADDRESS} to {btc_wallet_addr} amount {amount}"
             )
-            print("Error - {}".format(str(e)))
-        print("Failed sending timed out")
+            print("ERROR: {}".format(str(e)))
+        print("ERROR: Failed sending timed out")
         return False
 
 assert sender_addr == VAULT_BTC_WALLET_ADDRESS
 result = redeem(receiver_addr, amount)
-print(sender_addr, amount, receiver_addr, "status =", result)
+print("IMPORTANT: Redeem Success - sender:", sender_addr, "amount:", amount, "reciever:", receiver_addr, "tx_id:", result)

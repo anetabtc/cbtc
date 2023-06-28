@@ -95,7 +95,7 @@ export const request = async (
   const myAddress = ada_addr
   const bridgeAmount = amount
   const btcAddress = btc_addr
-  console.log(`Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
+  console.log("IMPORTANT:", `Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
   const result = await user_request.submit(
     lucid,
     bridgeAmount,
@@ -125,7 +125,7 @@ export const fullfil = async (lucid: Lucid) => {
     deployments.scripts.guardianValidator
   )
   if (!validDatumUtxoList?.length) {
-    console.log("No valid datums at Guardian Script")
+    console.log("LOG:", "No valid datums at Guardian Script")
     return null
   }
 
@@ -164,6 +164,7 @@ export const fullfil = async (lucid: Lucid) => {
     fulfillTx.toString(),
     [witness1, witness2, witness3]
   )
+  console.log("IMPORTANT: Mint Successful with tx_id:", assembleTx)
   return true
 }
 
@@ -210,7 +211,7 @@ const update_mint_queue = async () => {
       if (is_incoming && is_after_start_time) {
         // Check if tx is not in mint_db already
         mint_queue.push(tx_id)
-        console.log(tx_id)
+        console.log("IMPORTANT: Adding to Mint Queue", tx_id)
       }
 
       // Stop checking transaction if it is not new
@@ -229,7 +230,7 @@ const mint = async (lucid: Lucid) => {
     let result = await fullfil(lucid)
     return !!result ? true : false
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -243,7 +244,7 @@ const execute_mint = async (lucid: Lucid) => {
     try {
       btc_addr = tx.vin[0].prevout.scriptpubkey_address
     } catch (error) {
-      console.log(error)
+      console.log("ERROR:", error)
     }
     let OP_RETURN = null
     let amount = null
@@ -269,11 +270,11 @@ const execute_mint = async (lucid: Lucid) => {
         ada_addr = ada_addr.slice(1)
       }
       let paymentCreds = lucid.utils.paymentCredentialOf(ada_addr)
-      console.log("Minting with this info")
-      console.log(ada_addr)
-      console.log(amount)
-      console.log(btc_addr)
-      console.log(lucid.utils.credentialToAddress(paymentCreds))
+      console.log("IMPORTANT:", "Minting with this info")
+      console.log("IMPORTANT: info:", ada_addr)
+      console.log("IMPORTANT: info:", amount)
+      console.log("IMPORTANT: info:", btc_addr)
+      console.log("IMPORTANT: info:", lucid.utils.credentialToAddress(paymentCreds))
       await request(
         lucid,
         amount,
@@ -325,6 +326,7 @@ const update_redeem_queue = async () => {
           if (!redeem_db.has(tx_id)) {
             redeem_queue.push([tx_id, amount])
             redeem_db.add(tx_id)
+            console.log("IMPORTANT: Adding to Redeem Queue", tx_id)
           }
         }
       }
@@ -342,20 +344,20 @@ const RedeemAPI = async (
     amount: amount,
     receiver_addr: receiver_addr,
   }
-  console.log("Sending Redeem with params:")
-  console.log(params)
+  console.log("IMPORTANT:", "Sending Redeem with the following params")
+  console.log("IMPORTANT: params:", params)
   var password = "password"
   const command = `python redeem.py ${sender_addr} ${amount} ${receiver_addr} ${password}` // Replace with your own command
   exec(command, (error, stdout, stderr) => {
     if (error) {
-      console.error(`Error running command: ${error.message}`)
+      console.log("ERROR:", `Error running command: ${error.message}`)
       return
     }
     if (stderr) {
-      console.error(`Command stderr: ${stderr}`)
+      console.log("ERROR:", `Command stderr: ${stderr}`)
       return
     }
-    console.log(`Command stdout: ${stdout}`)
+    console.log("IMPORTANT:", `Command stdout: ${stdout}`)
   })
   return stdout
 }
@@ -368,14 +370,10 @@ const execute_redeem = async () => {
     let amount_num = Number(tx_amount_pair[1].slice(1))
     let amount = amount_num.toString()
     // Step 2 Verify Burn cBTC transaction is good
-    console.log("redeem")
-    console.log(tx)
+    console.log("IMPORTANT: redeeming tx", tx)
     let metadata = await getADATransactionMetadata(tx)
     let receiver_addr = metadata[0].json_metadata.btcAddress
     let tx_data = await getADATransactionUTXOs(tx)
-    console.log(receiver_addr)
-    console.log(tx_data)
-    console.log(amount)
     const sender_addr = btcVaultAddress
 
     const result_str: { [key: string]: any } = await RedeemAPI(
@@ -383,14 +381,16 @@ const execute_redeem = async () => {
       amount,
       receiver_addr
     )
-    console.log("Result:")
-    console.log(result_str)
+
     if (!!result_str && !!result_str["response"]) {
       if (result_str["response"].includes("True")) {
+        console.log("IMPORTANT: Result", result_str)
         return true
       }
     }
     // Step 4 if failed log and requeue
+    console.log("WARNING: Execute Redeem Resulted in Failure", result_str)
+    console.log("IMPORTANT: Requeing tx", tx)
     return false
   }
   return true
@@ -406,7 +406,7 @@ const Run = ({ lucid }: Props) => {
         try {
           await update_mint_queue()
         } catch (error) {
-          console.log(error)
+          console.log("ERROR:", error)
         }
 
         epoch = 0
@@ -416,28 +416,28 @@ const Run = ({ lucid }: Props) => {
       try {
         execute_mint(lucid)
       } catch (error) {
-        console.log(error)
+        console.log("ERROR:", error)
       }
 
       /// Mint Outstanding orders
       try {
         await mint(lucid)
       } catch (error) {
-        console.log(error)
+        console.log("ERROR:", error)
       }
 
       // Read Redeem Requests (using getPendingADATransactions()) and Add to Queue
       try {
         await update_redeem_queue()
       } catch (error) {
-        console.log(error)
+        console.log("ERROR:", error)
       }
       // Pop and Try to Complete Next Redeem Request
       for (let i = 0; i < 2; i++) {
         try {
           let result = await execute_redeem()
         } catch (error) {
-          console.log(error)
+          console.log("ERROR:", error)
         }
       }
 
@@ -455,12 +455,12 @@ const MainServer = async () => {
   Run({ lucid })
 }
 
-console.log("\n\nCRITICAL Startup Time Check:", start_time)
-console.log("\nhttps://www.unixtimestamp.com/")
+console.log("\n\nIMPORTANT: CRITICAL Startup Time Check:", start_time)
+console.log("\nIMPORTANT: https://www.unixtimestamp.com/")
 console.log(
-  "\nhttps://helloacm.com/api/unix-timestamp-converter/?cached&s=" +
+  "\nIMPORTANT: https://helloacm.com/api/unix-timestamp-converter/?cached&s=" +
     start_time.toString()
 )
-console.log("\nIf time is incorrect please check settings and restart...\n\n\n")
+console.log("\nIMPORTANT: If time is incorrect please check settings and restart...\n\n\n")
 
 MainServer()

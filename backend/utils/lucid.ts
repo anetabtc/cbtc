@@ -12,7 +12,7 @@ const network = "Preprod" //process.env.NETWORK as Network
 // }
 
 const initLucidWithoutWallet = async () => {
-  console.log(apiURL)
+  console.log("IMPORTANT:", apiURL)
   const lucid = await Lucid.new(new Blockfrost(apiURL, blockfrostKey), network)
   return lucid
 }

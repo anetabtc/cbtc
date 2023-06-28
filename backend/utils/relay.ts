@@ -30,7 +30,7 @@ export const getPendingADATransactionsToPolicy = async (): Promise<
 
     return txs
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -50,7 +50,7 @@ export const getPendingADATransactions = async (): Promise<string[]> => {
 
     return txs ?? []
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -70,7 +70,7 @@ export const getADATransaction = async (tx: string) => {
 
     return data
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -90,7 +90,7 @@ export const getADATransactionUTXOs = async (tx: string) => {
 
     return data ?? {}
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -110,7 +110,7 @@ export const getADATransactionMetadata = async (tx: string) => {
 
     return data
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -129,7 +129,7 @@ export const getBTCTransactionMP = async (txid) => {
 
     return tx
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }
 
@@ -151,9 +151,8 @@ export const getPendingBTCTransactionsMP = async (): Promise<string[] | []> => {
     for (let i in data) {
       txs.push(data[i].txid)
     }
-    console.log("getPendingBTCTransactions")
     return txs ?? []
   } catch (error) {
-    console.log(error)
+    console.log("ERROR:", error)
   }
 }

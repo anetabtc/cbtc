@@ -21,7 +21,6 @@ export const getAllDatums = async (
   lucid: Lucid,
   guardianValApplied: Script
 ): Promise<AnyDatumUTXO[]> => {
-  console.log("Getting All Datums")
   const guardianValidatorAddr: Address =
     lucid.utils.validatorToAddress(guardianValApplied)
 
