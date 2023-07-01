@@ -95,14 +95,22 @@ export const request = async (
   const myAddress = ada_addr
   const bridgeAmount = amount
   const btcAddress = btc_addr
-  console.log("IMPORTANT:", `Requesting ${bridgeAmount} cSatoshis to ${myAddress}`)
-  const result = await user_request.submit(
-    lucid,
-    bridgeAmount,
-    myAddress,
-    btcAddress,
-    deployments.scripts.guardianValidator
+  console.log(
+    "IMPORTANT:",
+    `Requesting ${bridgeAmount} cSatoshis to ${myAddress}`
   )
+  try {
+    const result = await user_request.submit(
+      lucid,
+      bridgeAmount,
+      myAddress,
+      btcAddress,
+      deployments.scripts.guardianValidator
+    )
+    if (result) console.log(result)
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 // Fullfill requests from users
@@ -274,7 +282,10 @@ const execute_mint = async (lucid: Lucid) => {
       console.log("IMPORTANT: info:", ada_addr)
       console.log("IMPORTANT: info:", amount)
       console.log("IMPORTANT: info:", btc_addr)
-      console.log("IMPORTANT: info:", lucid.utils.credentialToAddress(paymentCreds))
+      console.log(
+        "IMPORTANT: info:",
+        lucid.utils.credentialToAddress(paymentCreds)
+      )
       await request(
         lucid,
         amount,
@@ -461,6 +472,8 @@ console.log(
   "\nIMPORTANT: https://helloacm.com/api/unix-timestamp-converter/?cached&s=" +
     start_time.toString()
 )
-console.log("\nIMPORTANT: If time is incorrect please check settings and restart...\n\n\n")
+console.log(
+  "\nIMPORTANT: If time is incorrect please check settings and restart...\n\n\n"
+)
 
 MainServer()
